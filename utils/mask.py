@@ -2,7 +2,6 @@ import numpy as np
 import cv2
 import glob
 
-
 def maskCreation(path):
     """
         Create mask images
@@ -31,8 +30,8 @@ def maskCreation(path):
         """ we need to find the good limits to segment the background by color """
         lower_hue = (hue_mean_border - 20)
         upper_hue = (hue_mean_border + 20)
-        lower_saturation = (saturation_mean_border - 20)
-        upper_saturation = (saturation_mean_border + 20)
+        lower_saturation = (saturation_mean_border - 30)
+        upper_saturation = (saturation_mean_border + 30)
         lower_value = (value_mean_border - 150)
         upper_value = (value_mean_border + 150)
 
@@ -43,11 +42,20 @@ def maskCreation(path):
         mask = cv2.inRange(im_hsv, lower_limit, upper_limit)
         mask = cv2.bitwise_not(mask)
 
-        # apply mask to image
-        image_with_mask = cv2.bitwise_and(im, im, mask=mask)
-        
+        # apply mask to find contours
+        mask = np.uint8(mask)
+        mask_value = cv2.split(mask)
+
+        contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL , cv2.CHAIN_APPROX_SIMPLE)                             
+            
+        # create new mask with the contours found
+        new_mask = cv2.fillPoly(mask, contours, [255,255,255])   
+
+        # apply mask to the image
+        image_with_mask = cv2.bitwise_and(im, im, mask = new_mask)       
+
         # save mask image inside the same folder as the image
-        cv2.imwrite(path + str(idx) + "_mask.png", mask)
+        cv2.imwrite(path + str(idx) + "_mask.png", new_mask)
 
         # save image with mask applied in same folder
         cv2.imwrite(path + str(idx) + "_image_with_mask.png", image_with_mask)

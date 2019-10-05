@@ -132,5 +132,5 @@ def get_mask(path):
     :param path: string indicating the path where the images are located
     :return: true
     """
-    print("im here")
+
     return mask.maskCreation(path)
