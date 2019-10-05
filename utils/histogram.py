@@ -83,6 +83,6 @@ def get_histograms(path, color_base):
     filenames.sort()
 
     if color_base == '1D':
-        return calculate_1d_histogram(filenames, path)
+        return calculate_1d_histogram(filenames)
     else:
-        return calculate_3d_histogram(filenames, path, color_base)
+        return calculate_3d_histogram(filenames, color_base)

@@ -86,7 +86,7 @@ def calculate_image_histograms(path, colorBase):
     return histogram.get_histograms(path, colorBase)
 
 
-def get_top_K(predictions, k):
+def get_top_k(predictions, k):
     """
     This function returns an array of size (n_queries x k) with the index of the images
     from the dataset that are closer to the query image.
@@ -114,6 +114,7 @@ def get_mapk(GT, predictions, k):
     """
 
     return metrics.mapk(GT, predictions, k)
+
 
 def get_mask(path):
     """

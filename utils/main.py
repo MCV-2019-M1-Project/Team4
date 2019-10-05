@@ -19,13 +19,13 @@ if __name__ == '__main__':
 
     # Remove background for each image in the Query Set 2
     if backgroundRemoval == "True":
-      mask_apply = evaluation.get_mask('../images/' + querySetPath + '/')
+        mask_apply = evaluation.get_mask('../images/' + querySetPath + '/')
       
     # Select images depending on if they have background remove or not
-    if mask_apply == True:
-      query_set_path = querySetPath + '/' + '*_image_with_mask.png' # Images without background
+    if mask_apply:
+        query_set_path = querySetPath + '/' + '*_image_with_mask.png' # Images without background
     else:
-      query_set_path = querySetPath + '/' + '*.jpg' # Images with background
+        query_set_path = querySetPath + '/' + '*.jpg' # Images with background
 
     GT = evaluation.get_ground_truth('../images/' + querySetPath + '/gt_corresps.pkl')
     DB_Histograms = evaluation.calculate_image_histograms('../images/bbdd/*.jpg', colorBase)
@@ -33,7 +33,7 @@ if __name__ == '__main__':
     
     # Compute similarities to museum images for each image in the Query Set 1 and 2
     predictions = evaluation.calculate_similarities(colorBase, metric, QS_Histograms, DB_Histograms)
-    top_k = evaluation.get_top_K(predictions, int(k))
+    top_k = evaluation.get_top_k(predictions, int(k))
     map_k = evaluation.get_mapk(GT, predictions, int(k))
 
     print('Map@K result: ' + str(map_k))
