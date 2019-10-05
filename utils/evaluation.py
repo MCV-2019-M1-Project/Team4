@@ -1,5 +1,5 @@
 import pickle
-from utils import distances_metrics, histogram
+from utils import distances_metrics, histogram, mask
 import numpy as np
 import ml_metrics as metrics
 
@@ -114,3 +114,22 @@ def get_mapk(GT, predictions, k):
     """
 
     return metrics.mapk(GT, predictions, k)
+
+def get_mask(path):
+    """
+    This function calls the function that calculates a mask based on color segmentation and create the mask
+    image (horizontal_pixels x vertical_pixels) inside the same folder as the image and with following name:
+    
+        MASK: path + number_of_image + _mask.png 
+    
+    It also creates the images with the background remove in the same folder with name
+
+        IMAGE_WITH_MASK: path + number_of_image + _image_with_mask.png
+
+    The function returns true if it has finished without any error
+
+    :param path: string indicating the path where the images are located
+    :return: true
+    """
+    print("im here")
+    return mask.maskCreation(path)

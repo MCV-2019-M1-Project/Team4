@@ -133,7 +133,7 @@ def calculateHistogramHSV(filenames, path):
 def calculateHistogram(path, colorBase):
 
     # read images in dataset
-    filenames = glob.glob(path + "*.jpg")
+    filenames = glob.glob(path)
     filenames.sort()
 
     func = {
