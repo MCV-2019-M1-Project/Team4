@@ -1,4 +1,3 @@
-import numpy as np
 import cv2
 import glob
 
@@ -17,10 +16,8 @@ def calculate_1d_histogram(filenames):
     for image in filenames:  # Loop for each image
 
         # Compute the histogram for every image
-        im = cv2.imread(image)
-        hist, bins = np.histogram(im.ravel(), 256, [0, 256])
-        hist = [float(i)/max(hist) for i in hist]
-
+        hist = cv2.calcHist([cv2.cvtColor(cv2.imread(image), cv2.COLOR_BGR2GRAY)], [0], None, [256], [0, 256])
+        cv2.normalize(hist, hist)
         hist_1d_global[idx] = hist
         idx += 1
 
