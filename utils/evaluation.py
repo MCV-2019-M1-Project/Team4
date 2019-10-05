@@ -83,7 +83,7 @@ def calculate_image_histograms(path, colorBase):
     :return: 1x256 array or 1x768 array containing the histogram
     """
 
-    return histogram.calculateHistogram(path, colorBase)
+    return histogram.get_histograms(path, colorBase)
 
 
 def get_top_K(predictions, k):

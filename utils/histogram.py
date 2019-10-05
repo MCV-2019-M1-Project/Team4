@@ -1,74 +1,65 @@
 import numpy as np
-import matplotlib.pyplot as plt
 import cv2
 import glob
-import os
-
-######################## Function to calculate 1D grayscale histogram ##########################################333
 
 
-def calculateHistogram1D(filenames, path):
+def calculate_1d_histogram(filenames):
+    """
+    This function calculates a 1D histogram for each of the images given
 
-    hist_1D_global = {} # Declaration of the return list with the following shape [number of images, number of pixel(0-256)]
+    :param filenames: list of images
+    :return: A dictionary where each key is the index image and the values are the 1D histograms
+    """
+
+    hist_1d_global = {}  # Declaration of the return dic: key is the index of the image and value is the histogram
 
     idx = 0
-    for image in filenames: # Loop for each image
+    for image in filenames:  # Loop for each image
 
         # Compute the histogram for every image
         im = cv2.imread(image)
-        hist, bins = np.histogram(im.ravel(),256,[0,256])
+        hist, bins = np.histogram(im.ravel(), 256, [0, 256])
+        hist = [float(i)/max(hist) for i in hist]
 
-        # Append all histograms together to the list
-        hist_1D_global[idx] = hist
+        hist_1d_global[idx] = hist
         idx += 1
 
-    return hist_1D_global
+    return hist_1d_global
 
 
-######################## Function to calculate 3 BGR histograms ##########################################333
+def calculate_3d_histogram(filenames, color_base):
+    """
+    This function calculates a 3D histogram for each of the images given. Several color bases are supported
 
-
-def calculateHistogramBGR(filenames, path):
-
-
-    hist_image_set = {} # Declaration of the return list with the following shape [3 * number of images, number of pixel(0-256)]
-
-    idx = 0
-    for image in filenames:
-
-        im = cv2.imread(image)
-
-        color = ('b','g','r')
-                
-        # Compute the histogram for every image and color (3 for every image in total)
-        hist_image = []
-        for i,col in enumerate(color):
-            hist = cv2.calcHist([im],[i],None,[256],[0,256])
-            hist_image.append(hist)
-
-        hist_image_set[idx] = hist_image
-        idx += 1
-
-    return hist_image_set
-
-
-####################### Function to calculate 3 LAB histograms ##########################################333
-
-
-def calculateHistogramLAB(filenames, path):
+    :param filenames: list of images
+    :param color_base: String that indicates in which color base the histogram has to be calculated
+    :return: A dictionary where each key is the index image and the values are the 3D histograms
+    """
 
     hist_image_set = {}
-
     idx = 0
-    for image in filenames:
 
+    for image in filenames:
+        hist_image = []
         im = cv2.imread(image)
 
-        # calculate and plot histogram using LAB color-space
-        lab = ('L','b','a')
-        hist_image = []
-        for i, col in enumerate(lab):
-            hist = cv2.calcHist([cv2.cvtColor(im, cv2.COLOR_BGR2LAB)],[i], None,[256],[0, 256])
+        if color_base == 'BGR':
+            color = ('b','g','r')
+        elif color_base == 'LAB':
+            color = ('L','b','a')
+            im = cv2.cvtColor(im, cv2.COLOR_BGR2LAB)
+        elif color_base == 'YCrCb':
+            color = ('Y','Cr','b')
+            im = cv2.cvtColor(im, cv2.COLOR_BGR2YCrCb)
+        elif color_base == 'HSV':
+            color = ('H','S','V')
+            im = cv2.cvtColor(im, cv2.COLOR_BGR2HSV)
+        else:
+            raise Exception("Color Base is not valid")
+
+        for i, col in enumerate(color):
+            hist = cv2.calcHist([im], [i], None, [256], [0, 256])
+            cv2.normalize(hist, hist)
             hist_image.append(hist)
 
         hist_image_set[idx] = hist_image
@@ -77,70 +68,21 @@ def calculateHistogramLAB(filenames, path):
     return hist_image_set
 
 
-######################## Function to calculate 3 YCrCb histograms ##########################################333
+def get_histograms(path, color_base):
+    """
+    This class calls the functions that calculate the histograms, depending if it is a 1D or 3D histogram
 
+    :param path: String indicating the path where the images are located
+    :param color_base: String that indicates in which color base the histogram has to be calculated
 
-def calculateHistogramYCrCb(filenames, path):
-
-    hist_image_set = []
-
-    idx = 0
-    for image in filenames:
-
-        im = cv2.imread(image)
-
-        # calculate and plot histogram using YCrCb color-space
-        lab = ('Y','Cr','b')
-        hist_image = []
-
-        for i,col in enumerate(lab):
-            hist = cv2.calcHist([cv2.cvtColor(im, cv2.COLOR_BGR2YCrCb)],[i],None,[256],[0,256])
-            hist_image.append(hist)
-
-        hist_image_set[idx] = hist_image
-        idx += 1
-
-
-    return hist_image_set
-
-
-######################## Function to calculate 3 HSV histograms ##########################################333
-
-
-def calculateHistogramHSV(filenames, path):
-
-    hist_image_set = []
-
-    idx = 0
-    for image in filenames:
-
-        im = cv2.imread(image)
-
-        # calculate and plot histogram using HSV color-space
-        lab = ('H','S','V')
-        hist_image = []
-
-        for i,col in enumerate(lab):
-            hist = cv2.calcHist([cv2.cvtColor(im, cv2.COLOR_BGR2HSV)],[i],None,[256],[0,256])
-            hist_image.append(hist)
-
-        hist_image_set[str(idx)] = hist_image
-        idx += 1
-
-    return hist_image_set
-
-
-def calculateHistogram(path, colorBase):
+    :return: a dictionary where the keys are the index of the images and the values are the histograms
+    """
 
     # read images in dataset
     filenames = glob.glob(path)
     filenames.sort()
 
-    func = {
-        'HSV': calculateHistogramHSV,
-        'YCrCb': calculateHistogramYCrCb,
-        'LAB': calculateHistogramLAB,
-        'BGR': calculateHistogramBGR,
-        '1D': calculateHistogram1D,
-    }
-    return func[colorBase](filenames, path)
+    if color_base == '1D':
+        return calculate_1d_histogram(filenames, path)
+    else:
+        return calculate_3d_histogram(filenames, path, color_base)
