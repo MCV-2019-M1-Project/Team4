@@ -15,9 +15,10 @@ if __name__ == "__main__":
     args = docopt(__doc__)
     dict_name = args['<dictName>']
 
-
     with open(dict_name, 'rb') as fd:
         dict = pickle.load(fd)
 
-    print (dict)
-    print ('Dictionary contains {} elements'.format(len(dict)))
+    print(dict)
+    print('Dictionary contains {} elements'.format(len(dict)))
+
+

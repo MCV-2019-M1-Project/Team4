@@ -3,7 +3,6 @@ import numpy as np
 from scipy.spatial import distance
 
 
-
 def _distance(u, v):
     """
     Compare the image descriptor vectors based on a distance metric.
@@ -149,5 +148,3 @@ def compute_distance(u, v, metric):
         'kl_divergence': kl_divergence
     }
     return func[metric](u, v)
-
-
