@@ -44,15 +44,31 @@ def maskCreation(path):
 
         # apply mask to find contours
         mask = np.uint8(mask)
-        mask_value = cv2.split(mask)
 
         contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL , cv2.CHAIN_APPROX_SIMPLE)                             
             
         # create new mask with the contours found
         new_mask = cv2.fillPoly(mask, contours, [255,255,255])   
 
-        # apply mask to the image
-        image_with_mask = cv2.bitwise_and(im, im, mask = new_mask)       
+        # Find the rectangle to crop the image
+        x_max = 0
+        y_max = 0
+        w_max = 0
+        h_max = 0
+
+        for contour in contours:
+            (x,y,w,h) = cv2.boundingRect(contour)
+            cv2.rectangle(new_mask, (x,y), (x+w,y+h), (0,255,0), 2)
+            if (w_max * h_max) < (w * h):
+                x_max = x
+                y_max = y
+                w_max = w
+                h_max = h
+
+        # apply mask to the image or crop the image with rectangle
+
+        # ------- image_with_mask = cv2.bitwise_and(im, im, mask = new_mask) ----------   
+        image_with_mask = im[x_max:(x_max + w_max), y_max:(y_max + h_max)]    
 
         # save mask image inside the same folder as the image
         cv2.imwrite(path + str(idx) + "_mask.png", new_mask)
