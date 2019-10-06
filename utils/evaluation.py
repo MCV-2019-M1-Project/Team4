@@ -16,24 +16,41 @@ def get_ground_truth(path):
     return pickle.load(pkl_file, fix_imports=True, encoding='ASCII', errors='strict')
 
 
-def calculate_hist_distance(colorBase, metric, histA, histB):
+def save_to_pickle_file(data_to_save, path):
+    """
+    This function saves given data into a pickle file
+    :param data_to_save: object that wants to be saved
+    :param path: path where the object will be saved
+    :return: void
+    """
+
+    with open(path, 'wb') as handle:
+        pickle.dump(data_to_save, handle)
+
+    check = get_ground_truth('../results/method1.pkl')
+
+    if check == data_to_save:
+        print('Pickle File saved correctly')
+
+
+def calculate_hist_distance(color_base, metric, hist_a, hist_b):
     """
     This function calculates the distance between 2 histograms in the chosen metric.
 
-    :param colorBase: string indicating the color base in which the histogram has been calculated
+    :param color_base: string indicating the color base in which the histogram has been calculated
     :param metric: string indicating which metric to use to calculate the distance
-    :param histA: 1x256 array or 1x768 array containing histogram 1
-    :param histB: 1x256 array or 1x768 array containing histogram 2
+    :param hist_a: 1x256 array or 1x768 array containing histogram 1
+    :param hist_b: 1x256 array or 1x768 array containing histogram 2
     :return: float indicating the distance between the two histograms
     """
 
     distance = 0
-    if colorBase == '1D':
-        distance = distances_metrics.compute_distance(histA, histB, metric)
+    if color_base == '1D':
+        distance = distances_metrics.compute_distance(hist_a, hist_b, metric)
     else:
         bins = 256
-        aux_A = np.reshape(histA, (3, bins))
-        aux_B = np.reshape(histB, (3, bins))
+        aux_A = np.reshape(hist_a, (3, bins))
+        aux_B = np.reshape(hist_b, (3, bins))
         for i in range(3):
             distance += distances_metrics.compute_distance(aux_A[i], aux_B[i], metric)
 
