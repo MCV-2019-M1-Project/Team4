@@ -150,4 +150,4 @@ def get_mask(path):
     :return: true
     """
 
-    return mask.maskCreation(path)
+    return mask.mask_creation(path)

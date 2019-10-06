@@ -1,11 +1,15 @@
 import numpy as np
 import cv2
 import glob
+from PIL import Image
 
-def maskCreation(path):
+
+def mask_creation(path):
     """
-        Create mask images
+    Method to create a mask for each of the images located in a given path
 
+    :param path: String indicating the path where the images are located
+    :return: True
     """
     filenames = glob.glob(path + "*.jpg") 
     filenames.sort()
@@ -45,8 +49,8 @@ def maskCreation(path):
         # apply mask to find contours
         mask = np.uint8(mask)
 
-        contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL , cv2.CHAIN_APPROX_SIMPLE)                             
-            
+        contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL , cv2.CHAIN_APPROX_SIMPLE)
+
         # create new mask with the contours found
         new_mask = cv2.fillPoly(mask, contours, [255,255,255])   
 
@@ -57,8 +61,8 @@ def maskCreation(path):
         h_max = 0
 
         for contour in contours:
-            (x,y,w,h) = cv2.boundingRect(contour)
-            cv2.rectangle(new_mask, (x,y), (x+w,y+h), (0,255,0), 2)
+            (y, x, w, h) = cv2.boundingRect(contour)
+            cv2.rectangle(new_mask, (y, x), (y+w, x+h), (0, 255, 0), 2)
             if (w_max * h_max) < (w * h):
                 x_max = x
                 y_max = y

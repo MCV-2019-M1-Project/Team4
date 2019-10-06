@@ -19,10 +19,11 @@ if __name__ == '__main__':
     k = sys.argv[4]
     backgroundRemoval = sys.argv[5]
 
+
     mask_apply = False
 
     # Remove background for each image in the Query Set 2
-    if backgroundRemoval == "True":
+    if backgroundRemoval != "0":
         mask_apply = evaluation.get_mask('../images/' + querySetPath + '/')
       
     # Select images depending on if they have background remove or not
