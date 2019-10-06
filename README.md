@@ -43,4 +43,5 @@ The metric parameter indicates the metric that is used for comparing the images.
 * kl_divergence
  
 The k parameter is used to indicate the number of top results that need to be saved.
-Finally, the backgroundRemoval parameter indicates if background has to be removed from the query set images. 0 for no backgroud removal, 1 for the first method and 2 for the second method.
+
+Finally, the backgroundRemoval parameter indicates if background has to be removed from the query set images. True for background removal and False for no background removal.

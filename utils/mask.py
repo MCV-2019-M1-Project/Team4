@@ -61,8 +61,8 @@ def mask_creation(path):
         h_max = 0
 
         for contour in contours:
-            (y, x, w, h) = cv2.boundingRect(contour)
-            cv2.rectangle(new_mask, (y, x), (y+w, x+h), (0, 255, 0), 2)
+            (x, y, w, h) = cv2.boundingRect(contour)
+            cv2.rectangle(new_mask, (x, y), (x+w, y+h), (0, 255, 0), 2)
             if (w_max * h_max) < (w * h):
                 x_max = x
                 y_max = y

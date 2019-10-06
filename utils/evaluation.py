@@ -27,7 +27,7 @@ def save_to_pickle_file(data_to_save, path):
     with open(path, 'wb') as handle:
         pickle.dump(data_to_save, handle)
 
-    check = get_ground_truth('../results/method1.pkl')
+    check = get_ground_truth(path)
 
     if check == data_to_save:
         print('Pickle File saved correctly')

@@ -32,17 +32,17 @@ if __name__ == '__main__':
     else:
         query_set_path = querySetPath + '/' + '*.jpg' # Images with background
 
-    GT = evaluation.get_ground_truth('../images/' + querySetPath + '/gt_corresps.pkl')
+    #GT = evaluation.get_ground_truth('../images/' + querySetPath + '/gt_corresps.pkl')
     DB_Histograms = evaluation.calculate_image_histograms('../images/bbdd/*.jpg', colorBase)
     QS_Histograms = evaluation.calculate_image_histograms('../images/' + query_set_path, colorBase)      
 
     # Compute similarities to museum images for each image in the Query Set 1 and 2
     predictions = evaluation.calculate_similarities(colorBase, metric, QS_Histograms, DB_Histograms)
     top_k = evaluation.get_top_k(predictions, int(k))
-    evaluation.save_to_pickle_file(top_k, '../results/method1.pkl')
-    map_k = evaluation.get_mapk(GT, predictions, int(k))
+    evaluation.save_to_pickle_file(top_k, '../results/QST1/method2/results.pkl')
+    #map_k = evaluation.get_mapk(GT, predictions, int(k))
 
-    print('Map@K result: ' + str(map_k))
+    #print('Map@K result: ' + str(map_k))
     
     if mask_apply:
 
