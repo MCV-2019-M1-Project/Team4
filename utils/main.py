@@ -39,7 +39,7 @@ if __name__ == '__main__':
     # Compute similarities to museum images for each image in the Query Set 1 and 2
     predictions = evaluation.calculate_similarities(colorBase, metric, QS_Histograms, DB_Histograms)
     top_k = evaluation.get_top_k(predictions, int(k))
-    evaluation.save_to_pickle_file(top_k, '../results/QST1/method2/results.pkl')
+    evaluation.save_to_pickle_file(top_k, '../results/QST2/method2/results.pkl')
     #map_k = evaluation.get_mapk(GT, predictions, int(k))
 
     #print('Map@K result: ' + str(map_k))
