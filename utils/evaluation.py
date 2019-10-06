@@ -1,5 +1,5 @@
 import pickle
-import distances_metrics, histogram, mask
+from utils import distances_metrics, histogram, mask
 import numpy as np
 import ml_metrics as metrics
 

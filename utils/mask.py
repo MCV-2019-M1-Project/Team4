@@ -71,7 +71,7 @@ def maskCreation(path):
         image_with_mask = im[x_max:(x_max + w_max), y_max:(y_max + h_max)]    
 
         # save mask image inside the same folder as the image
-        cv2.imwrite(path + str(idx) + "_mask.png", new_mask)
+        cv2.imwrite(path + "a" + str(idx).zfill(2)  + "_mask.png", new_mask)
 
         # save image with mask applied in same folder
         cv2.imwrite(path + str(idx) + "_image_with_mask.png", image_with_mask)

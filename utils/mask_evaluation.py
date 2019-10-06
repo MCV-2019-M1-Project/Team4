@@ -6,14 +6,9 @@ def maskEvaluation(annotation_mask, result_mask):
     false_negative = 0 
     true_negative = 0
 
-    if annotation_mask.all() == result_mask.all() == 1:
-        true_positive =+ 1
-    if (result_mask.all() == 1 & annotation_mask.all() != result_mask.all()):
-        false_positive =+ 1
-    if (annotation_mask.all() == 1 & annotation_mask.all() != result_mask.all()):
-        false_negative =+ 1
-    if (annotation_mask.all() == result_mask.all() == 0):
-        true_negative =+ 1
+    true_positive = np.sum(np.logical_and(annotation_mask == 255, result_mask == 255))     
+    false_positive = np.sum(np.logical_and(result_mask == 255, annotation_mask != result_mask))
+    false_negative = np.sum(np.logical_and(annotation_mask == 255, annotation_mask != result_mask))   
     
     precision = true_positive / (true_positive + false_positive)
 
