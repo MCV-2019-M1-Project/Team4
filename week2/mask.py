@@ -1,6 +1,19 @@
 import numpy as np
 import cv2
 
+def MSE(a,b,axis):
+    """
+    This function computes the MSE between a and b along the specified axis.
+    Parameters
+    ----------
+    a : Numpy array.
+    b : Numpy array.
+    Returns
+    -------
+    Numpy array containing the MSE computation between a and b along the specified axis.
+    """
+    return ((a-b)**2).mean(axis=axis)
+
 
 def mask_creation(image, mask_path, image_index):
     """

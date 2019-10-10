@@ -33,18 +33,18 @@ def calculate_1d_histogram_color(image, mask, color_base):
         color = ('b', 'g', 'r')
     elif color_base == 'LAB':
         color = ('L', 'b', 'a')
-        im = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
     elif color_base == 'YCrCb':
         color = ('Y', 'Cr', 'b')
-        im = cv2.cvtColor(image, cv2.COLOR_BGR2YCrCb)
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2YCrCb)
     elif color_base == 'HSV':
         color = ('H', 'S', 'V')
-        im = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
     else:
         raise Exception("Color Base is not valid")
 
     for i, col in enumerate(color):
-        hist = cv2.calcHist([im], [i], mask, [256], [0, 256])
+        hist = cv2.calcHist([image], [i], mask, [256], [0, 256])
         cv2.normalize(hist, hist)
         hist_image.append(hist)
 
@@ -63,26 +63,24 @@ def calculate_2d_histogram(image, mask, color_base):
     image = cv2.imread(image)
 
     if color_base == 'HSV':
-        im = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
         range_hist = [0, 180, 0, 256]
         channels = [0, 1]
-        bins = [180, 256]
-    elif color_base == 'LAB':
-        im = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
-        range_hist = [-100, 100, -100, 100]
+    elif color_base == 'LAB': #NOT WORKING AS EXPECTED
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2Lab)
+        range_hist = [-127, 127, -127, 127]
         channels = [1, 2]
-        bins = [200, 200]
     elif color_base == 'YCrCb':
-        im = cv2.cvtColor(image, cv2.COLOR_BGR2YCrCb)
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2YCrCb)
         channels = [1, 2]
         range_hist = [0, 256, 0, 256]
-        bins = [256, 256]
     else:
         raise Exception("Color Base Not Valid")
 
-    hist = cv2.calcHist([im], channels, mask, bins, range_hist)
+    hist = cv2.calcHist([image], channels, mask, [128, 128], range_hist)
     cv2.normalize(hist, hist)
-    return hist
+
+    return hist.flatten()
 
 
 def calculate_3d_histogram(image, mask, color_base):
@@ -97,27 +95,14 @@ def calculate_3d_histogram(image, mask, color_base):
     image = cv2.imread(image)
 
     if color_base == 'BGR':
-        im = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-        bins = [256, 256, 256]
         range_hist = [0, 256, 0, 256, 0, 256]
-    elif color_base == 'LAB':
-        im = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
-        bins = [256, 256, 256]
-        range_hist = [0, 100, -100, 100, -100, 100]
-    elif color_base == 'HSV':
-        im = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-        bins = [180, 256, 256]
-        range_hist = [0, 180, 0, 256, 0, 256]
-    elif color_base == 'YCrCb':
-        im = cv2.cvtColor(image, cv2.COLOR_BGR2YCrCb)
-        bins = [256, 256, 256]
-        range_hist =[0, 256, 0, 256, 0, 256]
     else:
         raise Exception("Color Base is not valid")
 
-    hist = cv2.calcHist([im], [0, 1, 2], mask, bins, range_hist)
+    hist = cv2.calcHist([image], [0, 1, 2], mask, [128, 128, 128], range_hist)
     cv2.normalize(hist, hist)
-    return hist
+
+    return hist.flatten()
 
 
 def get_image_histogram(image, mask, color_base, dimension):

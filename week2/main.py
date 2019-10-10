@@ -59,7 +59,7 @@ if __name__ == '__main__':
         masks = {}
         if background_removal == "True":
             masks[idx] = evaluation.get_mask(query_image, masks_path, idx)
-
+            print(masks[idx])
             query_histograms[idx] = evaluation.calculate_image_histogram(query_image,
                                                                          masks[idx], color_base, dimension)
         else:
@@ -71,13 +71,15 @@ if __name__ == '__main__':
     print("Getting Predictions")
     predictions = evaluation.calculate_similarities(color_base, metric, dimension, query_histograms, museum_histograms)
     top_k = evaluation.get_top_k(predictions, k)
+    print(top_k)
 
     if save_to_pickle:
         print("Saving Results to Pickle File")
         evaluation.save_to_pickle_file(top_k, 'results/QST1/method2/hypo_corresps.pkl')
 
-    map_k = evaluation.get_mapk(GT, predictions, k)
-    print('Map@K result: ' + str(map_k))
+    if ground_truth_available:
+        map_k = evaluation.get_mapk(GT, predictions, k)
+        print('Map@K result: ' + str(map_k))
     
     if background_removal == "True":
         print("Getting Precision, Recall and F1 score")

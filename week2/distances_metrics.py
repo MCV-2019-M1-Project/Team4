@@ -42,19 +42,6 @@ def chi_square(u, v):
     return cv2.compareHist(u, v, cv2.HISTCMP_CHISQR)
 
 
-def hellinguer_distance(u, v):
-    """
-    Compare histograms based on the Hellinguer distance.
-    Args:
-        u (ndarray): 1D array of type np.float32 containing image descriptors.
-        v (ndarray): 1D array of type np.float32 containing image descriptors.
-    Returns:
-        float: computed distance between the histograms.
-    """
-
-    return cv2.compareHist(u, v, cv2.HISTCMP_HELLINGER)
-
-
 def bhattacharya_distance(u, v):
     """
     Compare histograms based on the Bhattacharyya distance.
@@ -134,8 +121,8 @@ def cosine_distance(u, v):
 
 
 def compute_distance(u, v, metric):
-    u = u / np.linalg.norm(u)
-    v = v / np.linalg.norm(v)
+    #u = u / np.linalg.norm(u)
+    #v = v / np.linalg.norm(v)
     func = {
         'euclidean_distance': euclidean_distance,
         'l1_distance': l1_distance,
@@ -143,7 +130,6 @@ def compute_distance(u, v, metric):
         'correlation': correlation,                         #cv2
         'chi_square': chi_square,                           #cv2
         'intersection': intersection,                       #cv2
-        'hellinguer_distance': hellinguer_distance,
         'bhattacharya_distance': bhattacharya_distance,     #cv2
         'kl_divergence': kl_divergence
     }
