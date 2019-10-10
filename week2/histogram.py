@@ -65,7 +65,7 @@ def calculate_2d_histogram(image, mask, color_base):
         channels = [0, 1]
     elif color_base == 'LAB': #NOT WORKING AS EXPECTED
         image = cv2.cvtColor(image, cv2.COLOR_BGR2Lab)
-        range_hist = [-127, 127, -127, 127]
+        range_hist = [0, 256, 0, 256]
         channels = [1, 2]
     elif color_base == 'YCrCb':
         image = cv2.cvtColor(image, cv2.COLOR_BGR2YCrCb)
