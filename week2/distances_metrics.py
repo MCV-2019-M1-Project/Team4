@@ -121,8 +121,9 @@ def cosine_distance(u, v):
 
 
 def compute_distance(u, v, metric):
-    #u = u / np.linalg.norm(u)
-    #v = v / np.linalg.norm(v)
+    u = np.array(u)
+    v = np.array(v)
+
     func = {
         'euclidean_distance': euclidean_distance,
         'l1_distance': l1_distance,

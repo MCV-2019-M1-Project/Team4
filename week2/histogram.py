@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 
+
 def calculate_1d_histogram_grayscale(image):
     """
     This function calculates a 1D histogram for each of the images given
@@ -9,7 +10,6 @@ def calculate_1d_histogram_grayscale(image):
     :return: A dictionary where each key is the index image and the values are the 1D histograms
     """
 
-    image = cv2.imread(image)
     hist = cv2.calcHist([cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)], [0], None, [256], [0, 256])
     cv2.normalize(hist, hist)
 
@@ -27,7 +27,6 @@ def calculate_1d_histogram_color(image, mask, color_base):
     """
 
     hist_image = []
-    image = cv2.imread(image)
 
     if color_base == 'BGR':
         color = ('b', 'g', 'r')
@@ -60,8 +59,6 @@ def calculate_2d_histogram(image, mask, color_base):
     :return:
     """
 
-    image = cv2.imread(image)
-
     if color_base == 'HSV':
         image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
         range_hist = [0, 180, 0, 256]
@@ -92,8 +89,6 @@ def calculate_3d_histogram(image, mask, color_base):
     :return:
     """
 
-    image = cv2.imread(image)
-
     if color_base == 'BGR':
         range_hist = [0, 256, 0, 256, 0, 256]
     else:
@@ -105,22 +100,74 @@ def calculate_3d_histogram(image, mask, color_base):
     return hist.flatten()
 
 
-def get_image_histogram(image, mask, color_base, dimension):
+def get_level_histograms(image, mask, color_base, dimension, num_blocks):
+    """
+
+    :param image:
+    :param mask:
+    :param color_base:
+    :param dimension:
+    :param num_blocks:
+    :return:
+    """
+
+    histograms = []
+    height, width = image.shape[:2]
+    height_block = int(np.ceil(height / num_blocks))  # Number of height pixels for sub-image
+    width_block = int(np.ceil(width / num_blocks))    # Number of width pixels for sub-image
+
+    for i in range(0, height, height_block):
+        for j in range(0, width, width_block):
+            block = image[i:i + height_block, j:j + width_block]
+
+            if mask is not None:
+                block_mask = mask[i:i + height_block, j:j + width_block]
+            else:
+                block_mask = None
+            #cv2.imwrite('cropped/' + str(i) + str(j) + ".png", block)
+            if color_base == 'Grayscale':
+                histograms.extend(calculate_1d_histogram_grayscale(block))
+            elif color_base != "Grayscale" and dimension == '1D':
+                histograms.extend(calculate_1d_histogram_color(block, block_mask, color_base))
+            elif color_base != "Grayscale" and dimension == '2D':
+                histograms.extend(calculate_2d_histogram(block, block_mask, color_base))
+            elif color_base != "Grayscale" and dimension == '3D':
+                histograms.extend(calculate_3d_histogram(block, block_mask, color_base))
+
+    return histograms
+
+
+def get_image_histogram(image, mask, color_base, dimension, level):
     """
     This class calls the functions that calculate the histograms, depending if it is a 1D or 3D histogram
 
-    :param path: String indicating the path where the images are located
+    :param image: String indicating the path where the images are located
     :param mask: mask to apply to the image. If mask == None, no mask is applied
     :param color_base: String that indicates in which color base the histogram has to be calculated
     :param dimension:
+    :param level:
     :return: a dictionary where the keys are the index of the images and the values are the histograms
     """
 
-    if color_base == 'Grayscale':
-        return calculate_1d_histogram_grayscale(image)
-    elif color_base != "Grayscale" and dimension == '1D':
-        return calculate_1d_histogram_color(image, mask, color_base)
-    elif color_base != "Grayscale" and dimension == '2D':
-        return calculate_2d_histogram(image, mask, color_base)
-    elif color_base != "Grayscale" and dimension == '3D':
-        return calculate_3d_histogram(image, mask, color_base)
+    image = cv2.imread(image)
+
+    if level == 1:
+        if color_base == 'Grayscale':
+            return calculate_1d_histogram_grayscale(image)
+        elif color_base != "Grayscale" and dimension == '1D':
+            return calculate_1d_histogram_color(image, mask, color_base)
+        elif color_base != "Grayscale" and dimension == '2D':
+            return calculate_2d_histogram(image, mask, color_base)
+        elif color_base != "Grayscale" and dimension == '3D':
+            return calculate_3d_histogram(image, mask, color_base)
+    elif level == 2 or level == 3:
+        histogram = []
+
+        for level in range(level + 1):
+            number_of_blocks = 2**level
+            histogram.extend(get_level_histograms(image, mask, color_base, dimension, number_of_blocks))
+
+        return histogram
+    else:
+        raise Exception("The selected level is not correct")
+

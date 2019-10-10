@@ -9,7 +9,7 @@ import sys
 import glob
 import numpy as np
 import cv2
-
+from multiprocessing import Pool
 
 if __name__ == '__main__':
 
@@ -26,6 +26,7 @@ if __name__ == '__main__':
 
     save_to_pickle = False
     ground_truth_available = True
+    level = 2
 
     # Get Ground Truth
     if ground_truth_available:
@@ -42,8 +43,9 @@ if __name__ == '__main__':
     museum_histograms = {}
     idx = 0
     for museum_image in museum_filenames:
+        print("Getting Histogram for Museum Image " + str(idx))
         museum_histograms[idx] = evaluation.calculate_image_histogram(museum_image, None,
-                                                                      color_base, dimension)
+                                                                      color_base, dimension, level)
         idx += 1
 
     # Get query images filenames
@@ -57,14 +59,15 @@ if __name__ == '__main__':
     query_histograms = {}
     for query_image in query_filenames:
         masks = {}
+        print("Getting Histogram for Query Image " + str(idx))
         if background_removal == "True":
             masks[idx] = evaluation.get_mask(query_image, masks_path, idx)
             print(masks[idx])
             query_histograms[idx] = evaluation.calculate_image_histogram(query_image,
-                                                                         masks[idx], color_base, dimension)
+                                                                         masks[idx], color_base, dimension, level)
         else:
             query_histograms[idx] = evaluation.calculate_image_histogram(query_image, None,
-                                                                         color_base, dimension)
+                                                                         color_base, dimension, level)
         idx += 1
 
     # Compute similarities to museum images for each image in the Query Set 1 and 2

@@ -1,8 +1,8 @@
 import pickle
 
 from week2 import distances_metrics, histogram, mask
-import numpy as np
 import ml_metrics as metrics
+import numpy as np
 
 
 def get_ground_truth(path):
@@ -48,14 +48,12 @@ def calculate_hist_distance(color_base, metric, dimension, hist_a, hist_b):
     """
 
     distance = 0
-    if color_base == 'Grayscale':
-        distance = distances_metrics.compute_distance(hist_a, hist_b, metric)
-    elif color_base != 'Grayscale' and dimension == '1D':
+    if color_base != "Grayscale" and dimension == 1:
         bins = 256
-        aux_A = np.reshape(hist_a, (3, bins))
-        aux_B = np.reshape(hist_b, (3, bins))
+        aux_a = np.reshape(hist_a, (3, bins))
+        aux_b = np.reshape(hist_b, (3, bins))
         for i in range(3):
-            distance += distances_metrics.compute_distance(aux_A[i], aux_B[i], metric)
+            distance += distances_metrics.compute_distance(aux_a[i], aux_b[i], metric)
     else:
         distance = distances_metrics.compute_distance(hist_a, hist_b, metric)
 
@@ -79,7 +77,7 @@ def calculate_similarities(color_base, metric, dimension, QS_Histograms, DB_Hist
     for query_hist in QS_Histograms.values():
         query_element_distances_list = []
         idx_museum = 0
-        print("Calculating similarities for Image " + str(idx_query))
+        print("Calculating similarities for Query Image " + str(idx_query))
         for museum_hist in DB_Histograms.values():
             distance = calculate_hist_distance(color_base, metric, dimension, query_hist, museum_hist)
             query_element_distances_list.append([idx_museum, distance])
@@ -98,18 +96,20 @@ def calculate_similarities(color_base, metric, dimension, QS_Histograms, DB_Hist
     return predictions
 
 
-def calculate_image_histogram(image, mask, color_base, dimension):
+def calculate_image_histogram(image, mask, color_base, dimension, level):
     """
     Calls the function that calculates the histogram in the specified color base for each of the pictures that are
     located in the specified path.
 
-    :param path: string indicating the path where the images are located
+    :param image: string indicating the path where the images are located
     :param mask: mask that has to be applied to the image
     :param color_base: string indicating the color base in which the histogram needs to be calculated
+    :param dimension:
+    :param level:
     :return: Array or matrix containing the resulting histogram
     """
 
-    return histogram.get_image_histogram(image, mask, color_base, dimension)
+    return histogram.get_image_histogram(image, mask, color_base, dimension, level)
 
 
 def get_top_k(predictions, k):
