@@ -96,20 +96,19 @@ def calculate_similarities(color_base, metric, dimension, QS_Histograms, DB_Hist
     return predictions
 
 
-def calculate_image_histogram(image, mask, color_base, dimension, level):
+def calculate_image_histogram(image, image_mask, color_base, dimension, level):
     """
     Calls the function that calculates the histogram in the specified color base for each of the pictures that are
     located in the specified path.
 
     :param image: string indicating the path where the images are located
-    :param mask: mask that has to be applied to the image
+    :param image_mask: mask that has to be applied to the image
     :param color_base: string indicating the color base in which the histogram needs to be calculated
     :param dimension:
     :param level:
     :return: Array or matrix containing the resulting histogram
     """
-
-    return histogram.get_image_histogram(image, mask, color_base, dimension, level)
+    return histogram.get_image_histogram(image, image_mask, color_base, dimension, level)
 
 
 def get_top_k(predictions, k):

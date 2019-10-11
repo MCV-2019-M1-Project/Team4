@@ -2,15 +2,16 @@ import cv2
 import numpy as np
 
 
-def calculate_1d_histogram_grayscale(image):
+def calculate_1d_histogram_grayscale(image, mask):
     """
     This function calculates a 1D histogram for each of the images given
 
     :param image: cv2 image
+    :param mask: mask to apply to the image
     :return: A dictionary where each key is the index image and the values are the 1D histograms
     """
 
-    hist = cv2.calcHist([cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)], [0], None, [256], [0, 256])
+    hist = cv2.calcHist([cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)], [0], mask, [256], [0, 256])
     cv2.normalize(hist, hist)
 
     return hist
@@ -47,6 +48,14 @@ def calculate_1d_histogram_color(image, mask, color_base):
         cv2.normalize(hist, hist)
         hist_image.append(hist)
 
+    """if mask is not None:
+        masked_img = cv2.bitwise_and(image, image, mask=mask)
+        plt.subplot(221), plt.imshow(image, 'gray')
+        plt.subplot(222), plt.imshow(mask, 'gray')
+        plt.subplot(223), plt.imshow(masked_img, 'gray')
+
+        plt.show()"""
+
     return hist_image
 
 
@@ -58,7 +67,6 @@ def calculate_2d_histogram(image, mask, color_base):
     :param color_base:
     :return:
     """
-
     if color_base == 'HSV':
         image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
         range_hist = [0, 180, 0, 256]
@@ -153,7 +161,7 @@ def get_image_histogram(image, mask, color_base, dimension, level):
 
     if level == 1:
         if color_base == 'Grayscale':
-            return calculate_1d_histogram_grayscale(image)
+            return calculate_1d_histogram_grayscale(image, mask)
         elif color_base != "Grayscale" and dimension == '1D':
             return calculate_1d_histogram_color(image, mask, color_base)
         elif color_base != "Grayscale" and dimension == '2D':

@@ -9,7 +9,6 @@ import sys
 import glob
 import numpy as np
 import cv2
-from multiprocessing import Pool
 
 if __name__ == '__main__':
 
@@ -42,6 +41,7 @@ if __name__ == '__main__':
     print("Getting Museum Histograms")
     museum_histograms = {}
     idx = 0
+
     for museum_image in museum_filenames:
         print("Getting Histogram for Museum Image " + str(idx))
         museum_histograms[idx] = evaluation.calculate_image_histogram(museum_image, None,
@@ -57,14 +57,15 @@ if __name__ == '__main__':
     print("Getting Query Histograms")
     idx = 0
     query_histograms = {}
+
     for query_image in query_filenames:
         masks = {}
         print("Getting Histogram for Query Image " + str(idx))
         if background_removal == "True":
             masks[idx] = evaluation.get_mask(query_image, masks_path, idx)
-            print(masks[idx])
             query_histograms[idx] = evaluation.calculate_image_histogram(query_image,
-                                                                         masks[idx], color_base, dimension, level)
+                                                                         masks[idx],
+                                                                         color_base, dimension, level)
         else:
             query_histograms[idx] = evaluation.calculate_image_histogram(query_image, None,
                                                                          color_base, dimension, level)
@@ -74,6 +75,9 @@ if __name__ == '__main__':
     print("Getting Predictions")
     predictions = evaluation.calculate_similarities(color_base, metric, dimension, query_histograms, museum_histograms)
     top_k = evaluation.get_top_k(predictions, k)
+    print("Ground Truth")
+    print(GT)
+    print("Top " + str(k))
     print(top_k)
 
     if save_to_pickle:
