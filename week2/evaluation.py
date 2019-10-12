@@ -1,6 +1,6 @@
 import pickle
 
-from week2 import distances_metrics, histogram, mask
+from week2 import distances_metrics, histogram, mask, text  
 import ml_metrics as metrics
 import numpy as np
 
@@ -146,3 +146,46 @@ def get_mask(image, masks_path, idx):
 
     """
     return mask.mask_creation(image, masks_path, idx)
+
+def evaluate_mask(annotation_mask, result_mask):
+    """
+    This function calculates the Precision, Recall and F1 score by comparing the ground truth mask
+    with the mask obtained with our algorithm.
+
+    :param annotation_mask: ground truth maks
+    :param result_mask: obtained masks
+    :return: precision, recall and F1 score
+    """
+
+    return mask.mask_evaluation(annotation_mask, result_mask)
+
+
+def detect_bounding_boxes(path):
+    """
+    This function detects the bounding boxes of the text in all the images of a specific folder
+
+    :param path: path of the images
+    :return: list of bounding boxes from first image to last image. Each image contains a maximum of 2 bounding boxes.
+    
+        [[[first_bounding_box_of_first_image],[second_bounding_box_of_second_image]], [[first_bounding_box_of_second_image]], ...]
+    
+    Each bounding box has the following int values:
+
+        [lowest_pixel_x, lowest_pixel_y, highest_pixel_x, highest_pixel_y] 
+    """
+
+    return text.bounding_boxes_detection(path)
+
+
+def evaluate_text(GT_bounding_boxes, result_bounding_boxes):
+    """
+    This function evaluates the accuracy of the result bounding boxes by calculating the parameter intersection over Union (IoU)
+    
+    :param GT_bounding_boxes: Ground Truth bounding boxes
+    :param result_bounding_boxes: bounding boxes detected in the images
+
+    :return: float with IoU parameter
+
+    """
+
+    return text.bounding_boxes_evaluation(GT_bounding_boxes, result_bounding_boxes)

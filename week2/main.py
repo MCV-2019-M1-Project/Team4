@@ -1,10 +1,10 @@
 """
 Usage:
-  main.py <colorBase> <query_set_path> <metric> <k> <background_removal>
+  main.py <colorBase> <dimension> <query_set_path> <metric> <k> <background_removal> <text_removal>
 Options:
 """
 
-from week2 import evaluation, mask_evaluation
+from week2 import evaluation 
 import sys
 import glob
 import numpy as np
@@ -22,42 +22,58 @@ if __name__ == '__main__':
     metric = sys.argv[4]
     k = int(sys.argv[5])
     background_removal = sys.argv[6]
+    text_removal = sys.argv[7]
 
     save_to_pickle = False
+    save_to_pickle_text = False
     ground_truth_available = True
+    ground_truth_text_available = True
     level = 2
 
     # Get Ground Truth
     if ground_truth_available:
         print("Loading Ground Truth")
         GT = evaluation.get_ground_truth(query_set_path + 'gt_corresps.pkl')
+    
+    if ground_truth_text_available:
+        print("Loading Text Ground Truth")
+        GT_text = evaluation.get_ground_truth(query_set_path + 'text_boxes.pkl')
 
     # Get museum images filenames
     print("Getting Museum Images")
     museum_filenames = glob.glob(test_set_path + '*.jpg')
     museum_filenames.sort()
 
+     # Get query images filenames
+    print("Getting Query Image")
+    query_filenames = glob.glob(query_set_path + '*.jpg')
+    query_filenames.sort()
+
+    # Detect bounding boxes for text (result_text) and compute IoU parameter
+    if text_removal:
+        print("Detecting text in the image")
+        result_text = evaluation.detect_bounding_boxes(query_set_path)
+        IoU = evaluation.evaluate_text(GT_text, result_text)
+        print("Intersection over Union: ", str(IoU))
+
+    if save_to_pickle_text:
+        print("Saving Results to Pickle File")
+        evaluation.save_to_pickle_file(result_text, 'results/QST1/method2/text_boxes.pkl')
+
     # Get Museum Histograms
     print("Getting Museum Histograms")
     museum_histograms = {}
     idx = 0
-
     for museum_image in museum_filenames:
         print("Getting Histogram for Museum Image " + str(idx))
         museum_histograms[idx] = evaluation.calculate_image_histogram(museum_image, None,
                                                                       color_base, dimension, level)
         idx += 1
 
-    # Get query images filenames
-    print("Getting Query Image")
-    query_filenames = glob.glob(query_set_path + '*.jpg')
-    query_filenames.sort()
-
     # Get query images histograms
     print("Getting Query Histograms")
     idx = 0
     query_histograms = {}
-
     for query_image in query_filenames:
         masks = {}
         print("Getting Histogram for Query Image " + str(idx))
@@ -98,7 +114,7 @@ if __name__ == '__main__':
         mean_f1score = []
 
         for idx, mask in masks.items():  # For each pair of masks, obtain the recall, precision and f1score metrics
-            recall, precision, f1score = mask_evaluation.mask_evaluation(cv2.cvtColor(cv2.imread(GT_masks[idx]),
+            recall, precision, f1score = evaluation.evaluate_mask(cv2.cvtColor(cv2.imread(GT_masks[idx]),
                                                                                       cv2.COLOR_BGR2GRAY),
                                                                          mask)
             mean_recall.append(recall)

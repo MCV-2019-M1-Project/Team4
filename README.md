@@ -18,7 +18,7 @@ Slides for Week 1 are available here: [Slides](https://drive.google.com/file/d/1
 ### How to run
 
 ```sh
-main.py <colorBase> <querySetPath> <metric> <k> <backgroundRemoval>
+main.py <colorBase> <dimension> <querySetPath> <metric> <k> <backgroundRemoval> <textRemoval>
 ```
 
 The available color bases for the histograms include:
@@ -28,6 +28,11 @@ The available color bases for the histograms include:
 * HSV
 * BGR
 * YCrCb
+
+The dimension parameter indicates the dimension of histograms:
+* 1D
+* 2D
+* 3D
 
 The querySetPath parameter indicates the location of the query set images.
 The metric parameter indicates the metric that is used for comparing the images. The following metrics are available:
@@ -44,4 +49,6 @@ The metric parameter indicates the metric that is used for comparing the images.
  
 The k parameter is used to indicate the number of top results that need to be saved.
 
-Finally, the backgroundRemoval parameter indicates if background has to be removed from the query set images. True for background removal and False for no background removal.
+The backgroundRemoval parameter indicates if background has to be removed from the query set images. True for background removal and False for no background removal.
+
+The textRemoval parameter indicates if the text has to be removed from the query set images. True for text removal and False for no text removal.
