@@ -107,7 +107,6 @@ def l1_distance(u, v):
 
 
 
-
 def cosine_distance(u, v):
     """
     Compare the image descriptor vectors based on the cosine similarity between them.

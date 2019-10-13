@@ -46,15 +46,7 @@ def calculate_1d_histogram_color(image, mask, color_base):
     for i, col in enumerate(color):
         hist = cv2.calcHist([image], [i], mask, [256], [0, 256])
         cv2.normalize(hist, hist)
-        hist_image.append(hist)
-
-    """if mask is not None:
-        masked_img = cv2.bitwise_and(image, image, mask=mask)
-        plt.subplot(221), plt.imshow(image, 'gray')
-        plt.subplot(222), plt.imshow(mask, 'gray')
-        plt.subplot(223), plt.imshow(masked_img, 'gray')
-
-        plt.show()"""
+        hist_image.extend(hist)
 
     return hist_image
 
