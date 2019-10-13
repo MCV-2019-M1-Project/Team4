@@ -4,7 +4,7 @@ Usage:
 Options:
 """
 
-from week2 import evaluation 
+from week2 import evaluation  
 import sys
 import glob
 import numpy as np

@@ -27,7 +27,14 @@ def bounding_boxes_detection(path):
 
     # Create the empty list to store the bounding boxes coordinates
     boxes = []
+
+    # Parameters
     idx = 0
+    #### METHOD 1
+    saturation_threshold = 5
+
+    #### METHOD 2
+    #saturation_threshold = 3
 
     # Read every image
     for query_image in query_filenames:
@@ -41,11 +48,11 @@ def bounding_boxes_detection(path):
 
         image_grey = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-        image_grey[s < 3] = 255
+        image_grey[s < saturation_threshold] = 255
         image_grey[image_grey != 255] = 0
 
         # Cleaning image using morphological opening filter
-        opening_kernel = np.ones((15,10),np.uint8)
+        opening_kernel = np.ones((15, 10),np.uint8)
         image_grey = cv2.morphologyEx(image_grey, cv2.MORPH_OPEN, opening_kernel, iterations=1)
 
         # Finding contours of the white areas of the images (high possibility of text)
@@ -125,6 +132,9 @@ def bounding_boxes_evaluation(boxA, boxB):
                 # areas - the interesection area
                 iou = interArea / float(boxAArea + boxBArea - interArea)
                 iou_total.append(iou)
+
+            else: 
+                iou_total.append(0)
 
     iou_mean = sum(iou_total) / len(iou_total)
 
