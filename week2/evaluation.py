@@ -160,11 +160,12 @@ def evaluate_mask(annotation_mask, result_mask):
     return mask.mask_evaluation(annotation_mask, result_mask)
 
 
-def detect_bounding_boxes(path):
+def detect_bounding_boxes(path, method):
     """
     This function detects the bounding boxes of the text in all the images of a specific folder
 
     :param path: path of the images
+    :param method: 1 for color segmentation and 2 for morphology operations
     :return: list of bounding boxes from first image to last image. Each image contains a maximum of 2 bounding boxes.
     
         [[[first_bounding_box_of_first_image],[second_bounding_box_of_second_image]], [[first_bounding_box_of_second_image]], ...]
@@ -174,7 +175,7 @@ def detect_bounding_boxes(path):
         [lowest_pixel_x, lowest_pixel_y, highest_pixel_x, highest_pixel_y] 
     """
 
-    return text.bounding_boxes_detection(path)
+    return text.bounding_boxes_detection(path, method)
 
 
 def evaluate_text(GT_bounding_boxes, result_bounding_boxes):

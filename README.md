@@ -18,7 +18,7 @@ Slides for Week 1 are available here: [Slides](https://drive.google.com/file/d/1
 ### How to run
 
 ```sh
-main.py <colorBase> <dimension> <querySetPath> <metric> <k> <backgroundRemoval> <textRemoval>
+main.py <colorBase> <dimension> <querySetPath> <metric> <k> <backgroundRemoval> <textRemoval> <textRemovalMethod>
 ```
 
 The available color bases for the histograms include:
@@ -52,3 +52,7 @@ The k parameter is used to indicate the number of top results that need to be sa
 The backgroundRemoval parameter indicates if background has to be removed from the query set images. True for background removal and False for no background removal.
 
 The textRemoval parameter indicates if the text has to be removed from the query set images. True for text removal and False for no text removal.
+
+The textRemovalMethod parameter indicates the method used for text detection:
+* 1 : text detection based on color segmentation
+* 2 : text detection based on morphology operations

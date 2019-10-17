@@ -1,10 +1,10 @@
 """
 Usage:
-  main.py <colorBase> <dimension> <query_set_path> <metric> <k> <background_removal> <text_removal>
+  main.py <colorBase> <dimension> <query_set_path> <metric> <k> <background_removal> <text_removal> <text_removal_method>
 Options:
 """
 
-from week2 import evaluation  
+from week2 import evaluation 
 import sys
 import glob
 import numpy as np
@@ -23,6 +23,7 @@ if __name__ == '__main__':
     k = int(sys.argv[5])
     background_removal = sys.argv[6]
     text_removal = sys.argv[7]
+    text_method = int(sys.argv[8])
 
     save_to_pickle = False
     save_to_pickle_text = False
@@ -52,7 +53,7 @@ if __name__ == '__main__':
     # Detect bounding boxes for text (result_text) and compute IoU parameter
     if text_removal:
         print("Detecting text in the image")
-        result_text = evaluation.detect_bounding_boxes(query_set_path)
+        result_text = evaluation.detect_bounding_boxes(query_set_path, text_method)
         IoU = evaluation.evaluate_text(GT_text, result_text)
         print("Intersection over Union: ", str(IoU))
 

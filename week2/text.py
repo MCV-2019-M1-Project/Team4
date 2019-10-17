@@ -6,11 +6,12 @@ import glob
 import os
 
 
-def bounding_boxes_detection(path):
+def bounding_boxes_detection(path, method):
     """
     This function detects the bounding boxes of the text in all the images of a specific folder
 
     :param path: path of the images
+    :param method: 1 for color segmentation and 2 for morphology operations
     :return: list of bounding boxes from first image to last image. Each image contains a maximum of 2 bounding boxes.
 
         [[[first_bounding_box_of_first_image],[second_bounding_box_of_second_image]], [[first_bounding_box_of_second_image]], ...]
@@ -30,11 +31,6 @@ def bounding_boxes_detection(path):
 
     # Parameters
     idx = 0
-    #### METHOD 1
-    saturation_threshold = 5
-
-    #### METHOD 2
-    #saturation_threshold = 3
 
     # Read every image
     for query_image in query_filenames:
@@ -42,25 +38,74 @@ def bounding_boxes_detection(path):
         print("Getting Text for Query Image " + str(idx))
         image = cv2.imread(query_image)
 
-        # Color image segmentation to create binary image (255 white: high possibility of text; 0 black: no text)
-        im_hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-        _, s, _ = cv2.split(im_hsv)
 
-        image_grey = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        #----------------------------------   METHOD 1   ----------------------------------------------------------
+        """
+        Method 1: text detection based on color segmentation using saturation
+        """
+        if (method == 1):
 
-        image_grey[s < saturation_threshold] = 255
-        image_grey[image_grey != 255] = 0
+            saturation_threshold = 5
 
-        # Cleaning image using morphological opening filter
-        opening_kernel = np.ones((15, 10),np.uint8)
-        image_grey = cv2.morphologyEx(image_grey, cv2.MORPH_OPEN, opening_kernel, iterations=1)
+            # Color image segmentation to create binary image (255 white: high possibility of text; 0 black: no text)
+            im_hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+            _, s, _ = cv2.split(im_hsv)
 
+            image_grey = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+            
+            image_grey[s < saturation_threshold] = 255
+            image_grey[image_grey != 255] = 0
+
+            # Cleaning image using morphological opening filter
+            opening_kernel = np.ones((15, 10),np.uint8)
+            text_mask = cv2.morphologyEx(image_grey, cv2.MORPH_OPEN, opening_kernel, iterations=1)
+
+        
+        #----------------------------------   METHOD 2   ----------------------------------------------------------
+        """
+        Method 2: text detection based on morphology operations
+        """
+
+        if (method == 2):
+    
+            # Define grayscale image 
+            im_yuv = cv2.cvtColor(image, cv2.COLOR_BGR2YUV)
+            im_y, _, _ = cv2.split(im_yuv)
+            
+            # Define kernel sizes
+            kernel = np.ones((5, 5), np.float32)/9
+
+            # Difference between erosion and dilation images 
+            y_dilation = cv2.morphologyEx(im_y, cv2.MORPH_DILATE, kernel, iterations = 1)
+            y_erosion = cv2.morphologyEx(im_y, cv2.MORPH_ERODE, kernel, iterations = 1)
+
+            difference_image = y_erosion - y_dilation
+
+            # Grow contrast areas found
+            growing_image = cv2.morphologyEx(difference_image, cv2.MORPH_ERODE, kernel, iterations = 1)
+
+            # Low pass filter to smooth out the result
+            blurry_image = cv2.filter2D(growing_image, -1, kernel)
+
+            # Thresholding the image to make a binary image
+            ret, binary_image = cv2.threshold(blurry_image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)   
+            inverted_binary_image = cv2.bitwise_not(binary_image)
+
+            # Clean small white pixels areas outside text using closing filter
+            #text_mask = cv2.morphologyEx(inverted_binary_image, cv2.MORPH_OPEN, kernel, iterations = 1)
+            
+            text_mask = inverted_binary_image
+        
+
+
+        #------------------------------   FINDING AND CHOOSING CONTOURS OF THE BINARY MASK   ---------------------------------------
+        
         # Finding contours of the white areas of the images (high possibility of text)
-        contours, _ = cv2.findContours(image_grey, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)[-2:]
+        contours, _ = cv2.findContours(text_mask,  cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2:]
 
         # Initialize parameters
-        image_width = image_grey.shape[0]
-        largest_area, second_largest_area, x_box_1, y_box_1, w_box_1, h_box_1 = 0, 0, 0, 0, 0, 0
+        largest_area, second_largest_area, x_box_1, y_box_1, w_box_1, h_box_1, x_box_2, y_box_2, w_box_2, h_box_2 = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+        image_width = text_mask.shape[0]
 
         # From all the contours found, pick only the ones with rectangular shape and large area
         for cnt in contours:
@@ -74,11 +119,16 @@ def bounding_boxes_detection(path):
                     x_box_1, y_box_1, w_box_1, h_box_1 = x, y, w, h
                     second_largest_area = largest_area
                     largest_area = area
+
                 else:
                     x_box_2, y_box_2, w_box_2, h_box_2 = x, y, w, h
                     second_largest_area = area
         
+        # cv2.rectangle(image, (x_box_1, y_box_1), (x_box_1 + w_box_1 - 1, y_box_1 + h_box_1 - 1), 255, 2)
+        # cv2.rectangle(image, (x_box_2, y_box_2), (x_box_2 + w_box_2 - 1, y_box_2 + h_box_2 - 1), 255, 2)
+
         # Append the corners of the bounding boxes to the boxes list
+
         if ((x_box_2 == y_box_2 == 0) | (path == 'images/qsd1_w2/')):
             box = [[x_box_1, y_box_1, x_box_1 + w_box_1, y_box_1 + h_box_1]]
             boxes.append(box)
@@ -89,6 +139,8 @@ def bounding_boxes_detection(path):
             box = [[x_box_2, y_box_2, x_box_2 + w_box_2, y_box_2 + h_box_2], [x_box_1, y_box_1, x_box_1 + w_box_1, y_box_1 + h_box_1]]
             boxes.append(box)
         
+        # cv2.imwrite(str(idx) + '.png', text_mask)
+
         idx += 1
 
     return boxes
