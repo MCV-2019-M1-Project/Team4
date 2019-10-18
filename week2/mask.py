@@ -53,7 +53,7 @@ def mask_creation(image, mask_path, image_index):
 
     # apply mask to find contours
     mask = np.uint8(mask)
-
+    
     contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     # create new mask with the contours found

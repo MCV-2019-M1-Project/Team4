@@ -1,6 +1,9 @@
 import pickle
 
-from week2 import distances_metrics, histogram, mask, text  
+from distances_metrics import *
+from histogram import *
+from mask import *
+from text import *
 import ml_metrics as metrics
 import numpy as np
 
@@ -53,9 +56,9 @@ def calculate_hist_distance(color_base, metric, dimension, hist_a, hist_b):
         aux_a = np.reshape(hist_a, (3, bins))
         aux_b = np.reshape(hist_b, (3, bins))
         for i in range(3):
-            distance += distances_metrics.compute_distance(aux_a[i], aux_b[i], metric)
+            distance += compute_distance(aux_a[i], aux_b[i], metric)
     else:
-        distance = distances_metrics.compute_distance(hist_a, hist_b, metric)
+        distance = compute_distance(hist_a, hist_b, metric)
 
     return distance
 
@@ -108,7 +111,7 @@ def calculate_image_histogram(image, image_mask, color_base, dimension, level):
     :param level:
     :return: Array or matrix containing the resulting histogram
     """
-    return histogram.get_image_histogram(image, image_mask, color_base, dimension, level)
+    return get_image_histogram(image, image_mask, color_base, dimension, level)
 
 
 def get_top_k(predictions, k):
@@ -145,7 +148,7 @@ def get_mask(image, masks_path, idx):
     """
 
     """
-    return mask.mask_creation(image, masks_path, idx)
+    return mask_creation(image, masks_path, idx)
 
 def evaluate_mask(annotation_mask, result_mask):
     """
@@ -157,7 +160,7 @@ def evaluate_mask(annotation_mask, result_mask):
     :return: precision, recall and F1 score
     """
 
-    return mask.mask_evaluation(annotation_mask, result_mask)
+    return mask_evaluation(annotation_mask, result_mask)
 
 
 def detect_bounding_boxes(path, method):
@@ -175,7 +178,7 @@ def detect_bounding_boxes(path, method):
         [lowest_pixel_x, lowest_pixel_y, highest_pixel_x, highest_pixel_y] 
     """
 
-    return text.bounding_boxes_detection(path, method)
+    return bounding_boxes_detection(path, method)
 
 
 def evaluate_text(GT_bounding_boxes, result_bounding_boxes):
@@ -189,4 +192,4 @@ def evaluate_text(GT_bounding_boxes, result_bounding_boxes):
 
     """
 
-    return text.bounding_boxes_evaluation(GT_bounding_boxes, result_bounding_boxes)
+    return bounding_boxes_evaluation(GT_bounding_boxes, result_bounding_boxes)

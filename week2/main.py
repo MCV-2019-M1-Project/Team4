@@ -4,7 +4,8 @@ Usage:
 Options:
 """
 
-from week2 import evaluation 
+from evaluation import *
+
 import sys
 import glob
 import numpy as np
@@ -34,11 +35,11 @@ if __name__ == '__main__':
     # Get Ground Truth
     if ground_truth_available:
         print("Loading Ground Truth")
-        GT = evaluation.get_ground_truth(query_set_path + 'gt_corresps.pkl')
+        GT = get_ground_truth(query_set_path + 'gt_corresps.pkl')
     
     if ground_truth_text_available:
         print("Loading Text Ground Truth")
-        GT_text = evaluation.get_ground_truth(query_set_path + 'text_boxes.pkl')
+        GT_text = get_ground_truth(query_set_path + 'text_boxes.pkl')
 
     # Get museum images filenames
     print("Getting Museum Images")
@@ -53,13 +54,23 @@ if __name__ == '__main__':
     # Detect bounding boxes for text (result_text) and compute IoU parameter
     if text_removal:
         print("Detecting text in the image")
-        result_text = evaluation.detect_bounding_boxes(query_set_path, text_method)
-        IoU = evaluation.evaluate_text(GT_text, result_text)
+        result_text = detect_bounding_boxes(query_set_path, text_method)
+        
+        acc_hgram_qimages = {}
+        for ind, q_fn in enumerate(query_filenames):
+            temp_img = cv2.imread(q_fn)
+            temp = np.zeros((temp_img.shape[0], temp_img.shape[1]), dtype=np.uint8) 
+            temp[result_text[ind][0][0]:result_text[ind][0][2], result_text[ind][0][1]:result_text[ind][0][3]] = 255
+            acc_hgram_qimages[ind] = calculate_image_histogram(q_fn, temp, color_base, dimension, level)
+            
+         
+
+        IoU = evaluate_text(GT_text, result_text)
         print("Intersection over Union: ", str(IoU))
 
     if save_to_pickle_text:
         print("Saving Results to Pickle File")
-        evaluation.save_to_pickle_file(result_text, 'results/QST1/method2/text_boxes.pkl')
+        save_to_pickle_file(result_text, 'results/QST1/method2/text_boxes.pkl')
 
     # Get Museum Histograms
     print("Getting Museum Histograms")
@@ -67,7 +78,7 @@ if __name__ == '__main__':
     idx = 0
     for museum_image in museum_filenames:
         print("Getting Histogram for Museum Image " + str(idx))
-        museum_histograms[idx] = evaluation.calculate_image_histogram(museum_image, None,
+        museum_histograms[idx] = calculate_image_histogram(museum_image, None,
                                                                       color_base, dimension, level)
         idx += 1
 
@@ -79,30 +90,37 @@ if __name__ == '__main__':
         masks = {}
         print("Getting Histogram for Query Image " + str(idx))
         if background_removal == "True":
-            masks[idx] = evaluation.get_mask(query_image, masks_path, idx)
-            query_histograms[idx] = evaluation.calculate_image_histogram(query_image,
+            masks[idx] = get_mask(query_image, masks_path, idx)
+            
+            query_histograms[idx] = calculate_image_histogram(query_image,
                                                                          masks[idx],
                                                                          color_base, dimension, level)
         else:
-            query_histograms[idx] = evaluation.calculate_image_histogram(query_image, None,
+            query_histograms[idx] = calculate_image_histogram(query_image, None,
                                                                          color_base, dimension, level)
         idx += 1
 
     # Compute similarities to museum images for each image in the Query Set 1 and 2
-    print("Getting Predictions")
-    predictions = evaluation.calculate_similarities(color_base, metric, dimension, query_histograms, museum_histograms)
-    top_k = evaluation.get_top_k(predictions, k)
+    if sys.argv[3] == 'qsd1_w1': 
+        print("Getting Predictions")
+        predictions = calculate_similarities(color_base, metric, dimension, query_histograms, museum_histograms)
+        top_k = get_top_k(predictions, k)
+    elif sys.argv[3] == 'qsd1_w2':
+        print("Getting Similarities for Query Set and Museum")
+        predictions = calculate_similarities(color_base, metric, dimension, acc_hgram_qimages, museum_histograms)
+        top_k = get_top_k(predictions, k)
     print("Ground Truth")
     print(GT)
     print("Top " + str(k))
     print(top_k)
 
+
     if save_to_pickle:
         print("Saving Results to Pickle File")
-        evaluation.save_to_pickle_file(top_k, 'results/QST1/method2/hypo_corresps.pkl')
+        save_to_pickle_file(top_k, 'results/QST1/method2/hypo_corresps.pkl')
 
     if ground_truth_available:
-        map_k = evaluation.get_mapk(GT, predictions, k)
+        map_k = get_mapk(GT, predictions, k)
         print('Map@K result: ' + str(map_k))
     
     if background_removal == "True":
@@ -115,7 +133,7 @@ if __name__ == '__main__':
         mean_f1score = []
 
         for idx, mask in masks.items():  # For each pair of masks, obtain the recall, precision and f1score metrics
-            recall, precision, f1score = evaluation.evaluate_mask(cv2.cvtColor(cv2.imread(GT_masks[idx]),
+            recall, precision, f1score = evaluate_mask(cv2.cvtColor(cv2.imread(GT_masks[idx]),
                                                                                       cv2.COLOR_BGR2GRAY),
                                                                          mask)
             mean_recall.append(recall)
