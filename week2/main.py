@@ -44,7 +44,7 @@ if __name__ == '__main__':
     if ground_truth_available:
         print("Loading Ground Truth")
         GT = get_ground_truth(query_set_path + 'gt_corresps.pkl')
-    
+
     if ground_truth_text_available:
         print("Loading Text Ground Truth")
         GT_text = get_ground_truth(query_set_path + 'text_boxes.pkl')
@@ -67,7 +67,6 @@ if __name__ == '__main__':
     print("Getting Query Image")
     query_filenames = glob.glob(query_set_path + '*.jpg')
     query_filenames.sort()
-    query_histograms = {}
 
     # Detect bounding boxes for text (result_text) and compute IoU parameter
     if text_removal == "True":
@@ -87,53 +86,45 @@ if __name__ == '__main__':
     print("Getting Query Histograms")
     idx = 0
     masks = {}
+    query_histograms = {}
+
+    if text_removal == "True" and multiple_subimages:
+        number_subimages = {}
+        query_histograms_counter = 0
+
     for query_image in query_filenames:
         print("Getting Histogram for Query Image " + str(idx))
         if text_removal == "True" and not multiple_subimages:
             # Get histograms for each one of the images in the query filenames
-            number_subimages = {}
+
             masks[idx] = get_mask(query_image, masks_path, idx)
             text_mask = masks[idx]
             text_mask[result_text[idx][0][1]:result_text[idx][0][3], result_text[idx][0][0]:result_text[idx][0][2]] = 0
-            #cv2.imwrite(masks_path + "a" + str(idx).zfill(2) + "_mask.png", text_mask)
-            query_histograms[idx] = calculate_image_histogram(query_image, text_mask, color_base, dimension, level, None,
-                                                              None)
+            query_histograms[idx] = calculate_image_histogram(query_image, text_mask, color_base, dimension, level,
+                                                              None, None)
 
         elif text_removal == "True" and multiple_subimages:
-            print('Getting the QSD2_W2 background Masks')
-            q_mask_filenames = glob.glob(query_set_path + '*.png')
-            q_mask_filenames.sort()
 
-            query_histograms = {}
+            # Get image mask
+            masks[idx] = get_mask(query_image, masks_path, idx)
+            text_mask = masks[idx]
+            for result_index in range(0, len(result_text[idx])):
+                text_mask[result_text[idx][result_index][1]:result_text[idx][result_index][3],result_text[idx][result_index][0]:result_text[idx][result_index][2]] = 0
 
-            temp_img = cv2.imread(query_image)
-            temp_img_sin_bck_text = cv2.imread(query_image.replace('.jpg', '_sin_bck_text.png'))
-            # Get the text mask
-            # Get the text mask
-            temp = np.ones((temp_img.shape[0], temp_img.shape[1]), dtype=np.uint8)
-            for indx in range(0, len(result_text[idx])):
-                temp[result_text[idx][indx][1]:result_text[idx][indx][3], result_text[idx][indx][0]:result_text[idx][indx][2]] = 0
-            temp_text = np.concatenate((np.expand_dims(temp,axis=2), np.expand_dims(temp,axis=2), np.expand_dims(temp,axis=2)), axis=2)
-            temp_sin_text = temp_img * temp_text
-
-            # Get the background mask
-            temp_bck_mask = cv2.imread(query_image.replace('.jpg', '.png'))
-            temp_bck_mask = np.where(temp_bck_mask==255, 1, temp_bck_mask)
-
-            output = paintings_detection(query_image.replace('.jpg', '_sin_text.png'), cv2.cvtColor(temp_bck_mask,
-                                                                                                 cv2.COLOR_BGR2GRAY))
+            output = paintings_detection(query_image, masks[idx])
             if output > 0:
                 number_subimages[idx] = 2
-                query_histograms[idx] = calculate_image_histogram(query_image.replace('.jpg', '_1_sin_bck_text.png'),
-                                                                  None, color_base, dimension, level, None, None)
-                idx += 1
-                query_histograms[idx] = calculate_image_histogram(query_image.replace('.jpg', '_2_sin_bck_text.png'),
-                                                                  None, color_base, dimension, level,  None, None)
-                idx += 1
+                query_histograms[idx] = calculate_image_histogram(query_image, text_mask, color_base, dimension, level, None,
+                                                                  None)
+                query_histograms_counter += 1
+                query_histograms[idx] = calculate_image_histogram(query_image, text_mask, color_base, dimension, level, None,
+                                                                  None)
+                query_histograms_counter += 1
             else:
                 number_subimages[idx] = 1
-                query_histograms[idx] = calculate_image_histogram(query_image.replace('.jpg', '_sin_bck_text.png'), None,
-                                                                  color_base, dimension, level, None, None)
+                query_histograms[idx] = calculate_image_histogram(query_image, None, color_base, dimension, level, None,
+                                                                  None)
+                query_histograms_counter += 1
 
         elif background_removal == "True":
             masks[idx] = get_mask(query_image, masks_path, idx)
@@ -169,7 +160,7 @@ if __name__ == '__main__':
     if ground_truth_available:
         map_k = get_mapk(GT, predictions, k)
         print('Map@K result: ' + str(map_k))
-    
+
     if query_set_path == "qsd2_w1":   # Now crashes because of masks names, so I changed that
         print("Getting Precision, Recall and F1 score")
         GT_masks = glob.glob(query_set_path + '000*.png')  # Load masks from the ground truth

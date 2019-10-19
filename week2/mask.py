@@ -119,7 +119,7 @@ def paintings_detection(query_image, mask):
         elif (w > 0.15 * image_width) & (h > 0.15 * image_height) & (w < 0.98 * image_width) & (x_box_1 != 0):
             x_box_2, y_box_2, w_box_2, h_box_2 = x, y, w, h
 
-    if (x_box_2 == 0):
+    if x_box_2 == 0:
         x_value_to_split = 0
     else:
         x_value_to_split = (x_box_1 + w_box_1/2 + x_box_2 + w_box_2/2) / 2
