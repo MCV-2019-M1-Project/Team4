@@ -94,7 +94,7 @@ def calculate_3d_histogram(image, mask, color_base):
     else:
         raise Exception("Color Base is not valid")
 
-    hist = cv2.calcHist([image], [0, 1, 2], mask, [128, 128, 128], range_hist)
+    hist = cv2.calcHist([image], [0, 1, 2], mask, [32, 32, 32], range_hist)
     cv2.normalize(hist, hist)
 
     return hist.flatten()

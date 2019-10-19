@@ -152,6 +152,7 @@ def get_mask(image, masks_path, idx):
     """
     return mask_creation(image, masks_path, idx)
 
+
 def evaluate_mask(annotation_mask, result_mask):
     """
     This function calculates the Precision, Recall and F1 score by comparing the ground truth mask

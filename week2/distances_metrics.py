@@ -7,6 +7,7 @@ def _distance(u, v):
     """
     Compare the image descriptor vectors based on a distance metric.
     Args:
+    Args:
         u (ndarray): 1D array of type np.float32 containing image descriptors.
         v (ndarray): 1D array of type np.float32 containing image descriptors.
     Returns:

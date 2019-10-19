@@ -4,8 +4,13 @@ Usage:
 Options:
 """
 
+# VSCode imports
 from evaluation import *
 from mask import *
+
+# PyCharm Imports
+#from week2.evaluation import *
+#from week2.mask import *
 
 import sys
 import glob
@@ -31,7 +36,7 @@ if __name__ == '__main__':
     save_to_pickle_text = False
     ground_truth_available = True
     ground_truth_text_available = True
-    level = 2
+    level = 1
 
     # Get Ground Truth
     if ground_truth_available:
@@ -47,13 +52,13 @@ if __name__ == '__main__':
     museum_filenames = glob.glob(test_set_path + '*.jpg')
     museum_filenames.sort()
 
-     # Get query images filenames
+    # Get query images filenames
     print("Getting Query Image")
     query_filenames = glob.glob(query_set_path + '*.jpg')
     query_filenames.sort()
 
     # Detect bounding boxes for text (result_text) and compute IoU parameter
-    if text_removal:
+    if text_removal == "True":
         print("Detecting text in the image")
         result_text = detect_bounding_boxes(query_set_path, text_method)
         
@@ -88,13 +93,16 @@ if __name__ == '__main__':
             
             output = paintings_detection(q_fn.replace('.jpg', '_sin_text.png'), cv2.cvtColor(temp_bck_mask, cv2.COLOR_BGR2GRAY))
             if output > 0:
-                acc_hgram_qimgs_sin_bck_text[cnt] = calculate_image_histogram(q_fn.replace('.jpg', '_1_sin_bck_text.png'), None, color_base, dimension, level, None, None)
+                acc_hgram_qimgs_sin_bck_text[cnt] = calculate_image_histogram(q_fn.replace('.jpg', '_1_sin_bck_text.png'),
+                                                                              None, color_base, dimension, level, None, None)
                 cnt= cnt+1
-                acc_hgram_qimgs_sin_bck_text[cnt] = calculate_image_histogram(q_fn.replace('.jpg', '_2_sin_bck_text.png'), None, color_base, dimension, level, None, None)
+                acc_hgram_qimgs_sin_bck_text[cnt] = calculate_image_histogram(q_fn.replace('.jpg', '_2_sin_bck_text.png'),
+                                                                              None, color_base, dimension, level, None, None)
                 cnt= cnt+1
             else:
                 
-                acc_hgram_qimgs_sin_bck_text[cnt] = calculate_image_histogram(q_fn.replace('.jpg', '_sin_bck_text.png'), None, color_base, dimension, level, None, None)
+                acc_hgram_qimgs_sin_bck_text[cnt] = calculate_image_histogram(q_fn.replace('.jpg', '_sin_bck_text.png'),
+                                                                              None, color_base, dimension, level, None, None)
                 cnt= cnt+1
                 #import pdb; pdb.set_trace()
                 #img_split1 = temp_img_sin_bck_text[:, 0:int(output) , :]
@@ -105,11 +113,7 @@ if __name__ == '__main__':
             # Save images sin bck and text
             #temp_sin_bck_text = temp_sin_text*temp_bck_mask
             #cv2.imwrite(('/home/sounak/Desktop/Team4/week2/'+q_fn[:-4]+'_sin_bck_text.png'),temp_sin_bck_text)
-            #acc_hgram_qimages[ind] = calculate_image_histogram(q_fn, temp, color_base, dimension, level)   
-         
-        
-            
-         
+            #acc_hgram_qimages[ind] = calculate_image_histogram(q_fn, temp, color_base, dimension, level)
 
         IoU = evaluate_text(GT_text, result_text)
         print("Intersection over Union: ", str(IoU))
@@ -132,35 +136,31 @@ if __name__ == '__main__':
     print("Getting Query Histograms")
     idx = 0
     query_histograms = {}
+    masks = {}
     for query_image in query_filenames:
-        masks = {}
         print("Getting Histogram for Query Image " + str(idx))
         if background_removal == "True":
             masks[idx] = get_mask(query_image, masks_path, idx)
             # Detects if there is more than one painting (0 if there is only one painting)
-            x_pixel_to_split = paintings_detection(query_image, masks[idx], idx) 
-            if x_pixel_to_split == 0: # Only one painting
-                query_histograms[idx] = calculate_image_histogram(query_image,
-                                                                         masks[idx],
-                                                                         color_base, dimension, level, None, None)
-            else: # Two paintings, two different histograms
-                query_histograms[idx] = calculate_image_histogram(query_image,
-                                                                         masks[idx],
-                                                                         color_base, dimension, level, x_pixel_to_split, "left")
+            x_pixel_to_split = paintings_detection(query_image, masks[idx])
+            if x_pixel_to_split == 0:  # Only one painting
+                query_histograms[idx] = calculate_image_histogram(query_image, masks[idx], color_base, dimension, level,
+                                                                  None, None)
+            else:  # Two paintings, two different histograms
+                query_histograms[idx] = calculate_image_histogram(query_image, masks[idx], color_base, dimension, level,
+                                                                  x_pixel_to_split, "left")
                 
-                idx += 1 # Be careful, we now have more histograms than images
+                idx += 1  # Be careful, we now have more histograms than images
 
-                query_histograms[idx] = calculate_image_histogram(query_image,
-                                                                         masks[idx],
-                                                                         color_base, dimension, level, x_pixel_to_split, "right")
-
+                query_histograms[idx] = calculate_image_histogram(query_image, masks[idx], color_base, dimension, level,
+                                                                  x_pixel_to_split, "right")
         else:
-            query_histograms[idx] = calculate_image_histogram(query_image, None,
-                                                                         color_base, dimension, level, None, None)
+            query_histograms[idx] = calculate_image_histogram(query_image, None,  color_base, dimension, level, None,
+                                                              None)
         idx += 1
 
     # Compute similarities to museum images for each image in the Query Set 1 and 2
-    if sys.argv[3] == 'qsd1_w1': 
+    if sys.argv[3] == 'qsd2_w1':
         print("Getting Predictions")
         predictions = calculate_similarities(color_base, metric, dimension, query_histograms, museum_histograms)
         top_k = get_top_k(predictions, k)
@@ -168,19 +168,15 @@ if __name__ == '__main__':
         print("Getting Similarities for Query Set2 and Museum")
         predictions = calculate_similarities(color_base, metric, dimension, acc_hgram_qimgs_sin_bck_text, museum_histograms)
         top_k = get_top_k(predictions, k)
-        print("Ground Truth")
-        print(GT)
-        print("Top " + str(k))
-        print(top_k)
     elif sys.argv[3] == 'qsd1_w2':
         print("Getting Similarities for Query Set and Museum")
         predictions = calculate_similarities(color_base, metric, dimension, acc_hgram_qimages, museum_histograms)
         top_k = get_top_k(predictions, k)
+
     print("Ground Truth")
     print(GT)
     print("Top " + str(k))
     print(top_k)
-
 
     if save_to_pickle:
         print("Saving Results to Pickle File")
@@ -198,11 +194,9 @@ if __name__ == '__main__':
         mean_precision = []
         mean_recall = []
         mean_f1score = []
-
         for idx, mask in masks.items():  # For each pair of masks, obtain the recall, precision and f1score metrics
             recall, precision, f1score = evaluate_mask(cv2.cvtColor(cv2.imread(GT_masks[idx]),
-                                                                                      cv2.COLOR_BGR2GRAY),
-                                                                         mask)
+                                                                                      cv2.COLOR_BGR2GRAY), mask)
             mean_recall.append(recall)
             mean_precision.append(precision)
             mean_f1score.append(f1score)
