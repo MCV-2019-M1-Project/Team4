@@ -92,11 +92,13 @@ if __name__ == '__main__':
         if text_removal == "True" and not multiple_subimages:
             # Get histograms for each one of the images in the query filenames
             number_subimages = {}
-            temp_img = cv2.imread(query_image)
-            temp = np.zeros((temp_img.shape[0], temp_img.shape[1]), dtype=np.uint8)
-            temp[result_text[idx][0][0]:result_text[idx][0][2], result_text[idx][0][1]:result_text[idx][0][3]] = 255
-            query_histograms[idx] = calculate_image_histogram(query_image, temp, color_base, dimension, level, None,
+            masks[idx] = get_mask(query_image, masks_path, idx)
+            text_mask = masks[idx]
+            text_mask[result_text[idx][0][1]:result_text[idx][0][3], result_text[idx][0][0]:result_text[idx][0][2]] = 0
+            #cv2.imwrite(masks_path + "a" + str(idx).zfill(2) + "_mask.png", text_mask)
+            query_histograms[idx] = calculate_image_histogram(query_image, text_mask, color_base, dimension, level, None,
                                                               None)
+
         elif text_removal == "True" and multiple_subimages:
             print('Getting the QSD2_W2 background Masks')
             q_mask_filenames = glob.glob(query_set_path + '*.png')
@@ -132,6 +134,7 @@ if __name__ == '__main__':
                 number_subimages[idx] = 1
                 query_histograms[idx] = calculate_image_histogram(query_image.replace('.jpg', '_sin_bck_text.png'), None,
                                                                   color_base, dimension, level, None, None)
+
         elif background_removal == "True":
             masks[idx] = get_mask(query_image, masks_path, idx)
             # Detects if there is more than one painting (0 if there is only one painting)
