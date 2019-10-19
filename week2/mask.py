@@ -90,3 +90,39 @@ def mask_evaluation(annotation_mask, result_mask):
     f1_measure = 2 * ((precision * recall) / (precision + recall))
 
     return recall, precision, f1_measure
+
+
+def paintings_detection(query_image, mask, idx):
+    """
+    This function evaluates how many paintings there are in a given image, using the background mask
+    of the image
+    :param query_image: image to evaluate number of paintings
+    :param mask: background binary mask of the image
+
+    return: 0 if there is only one painting
+            x_value_to_split: indicates the horizontal pixel where we want to split the image when there are two paintings
+    """
+
+    image = cv2.imread(query_image)
+
+    image_width = mask.shape[0]
+    image_height = mask.shape[1]
+    x_box_1, y_box_1, w_box_1, h_box_1, x_box_2, y_box_2, w_box_2, h_box_2 = 0, 0, 0, 0, 0, 0, 0, 0, 
+
+    contours, _ = cv2.findContours(mask,  cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2:]
+
+    for cnt in contours:
+        x, y, w, h = cv2.boundingRect(cnt)
+        
+        if (w > 0.15 * image_width) & (h > 0.15 * image_height) & (w < 0.98 * image_width) & (x_box_1 == 0):
+            x_box_1, y_box_1, w_box_1, h_box_1 = x, y, w, h
+        elif (w > 0.15 * image_width) & (h > 0.15 * image_height) & (w < 0.98 * image_width) & (x_box_1 != 0):
+            x_box_2, y_box_2, w_box_2, h_box_2 = x, y, w, h
+
+    if (x_box_2 == 0):
+        x_value_to_split = 0
+    else:
+        x_value_to_split = (x_box_1 + w_box_1/2 + x_box_2 + w_box_2/2) / 2
+
+
+    return(x_value_to_split)

@@ -137,7 +137,7 @@ def get_level_histograms(image, mask, color_base, dimension, num_blocks):
     return histograms
 
 
-def get_image_histogram(image, mask, color_base, dimension, level):
+def get_image_histogram(image, mask, color_base, dimension, level, x_pixel_to_split, side):
     """
     This class calls the functions that calculate the histograms, depending if it is a 1D or 3D histogram
 
@@ -146,10 +146,21 @@ def get_image_histogram(image, mask, color_base, dimension, level):
     :param color_base: String that indicates in which color base the histogram has to be calculated
     :param dimension:
     :param level:
+    :param x_pixel_to_split: indicates the x pixel to split the image and mask if there are more than one painting
+    :param side: indicates the side to split the image and mask if there are more than one painting
     :return: a dictionary where the keys are the index of the images and the values are the histograms
     """
 
     image = cv2.imread(image)
+
+    if (x_pixel_to_split != None):
+        if (side == "left"):
+            image = image[1:image.shape[0], 1:int(x_pixel_to_split)]
+            mask = mask[1:mask.shape[0], 1:int(x_pixel_to_split)]
+
+        elif (side == "right"):
+            image = image[1:image.shape[0], int(x_pixel_to_split):image.shape[1]]
+            mask = mask[1:mask.shape[0], int(x_pixel_to_split):mask.shape[1]]
 
     if level == 1:
         if color_base == 'Grayscale':

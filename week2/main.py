@@ -61,7 +61,7 @@ if __name__ == '__main__':
             temp_img = cv2.imread(q_fn)
             temp = np.zeros((temp_img.shape[0], temp_img.shape[1]), dtype=np.uint8) 
             temp[result_text[ind][0][0]:result_text[ind][0][2], result_text[ind][0][1]:result_text[ind][0][3]] = 255
-            acc_hgram_qimages[ind] = calculate_image_histogram(q_fn, temp, color_base, dimension, level)
+            acc_hgram_qimages[ind] = calculate_image_histogram(q_fn, temp, color_base, dimension, level, None, None)
             
          
 
@@ -79,7 +79,7 @@ if __name__ == '__main__':
     for museum_image in museum_filenames:
         print("Getting Histogram for Museum Image " + str(idx))
         museum_histograms[idx] = calculate_image_histogram(museum_image, None,
-                                                                      color_base, dimension, level)
+                                                                      color_base, dimension, level, None, None)
         idx += 1
 
     # Get query images histograms
@@ -91,13 +91,26 @@ if __name__ == '__main__':
         print("Getting Histogram for Query Image " + str(idx))
         if background_removal == "True":
             masks[idx] = get_mask(query_image, masks_path, idx)
-            
-            query_histograms[idx] = calculate_image_histogram(query_image,
+            # Detects if there is more than one painting (0 if there is only one painting)
+            x_pixel_to_split = paintings_detection(query_image, masks[idx], idx) 
+            if x_pixel_to_split == 0: # Only one painting
+                query_histograms[idx] = calculate_image_histogram(query_image,
                                                                          masks[idx],
-                                                                         color_base, dimension, level)
+                                                                         color_base, dimension, level, None, None)
+            else: # Two paintings, two different histograms
+                query_histograms[idx] = calculate_image_histogram(query_image,
+                                                                         masks[idx],
+                                                                         color_base, dimension, level, x_pixel_to_split, "left")
+                
+                idx += 1 # Be careful, we now have more histograms than images
+
+                query_histograms[idx] = calculate_image_histogram(query_image,
+                                                                         masks[idx],
+                                                                         color_base, dimension, level, x_pixel_to_split, "right")
+
         else:
             query_histograms[idx] = calculate_image_histogram(query_image, None,
-                                                                         color_base, dimension, level)
+                                                                         color_base, dimension, level, None, None)
         idx += 1
 
     # Compute similarities to museum images for each image in the Query Set 1 and 2

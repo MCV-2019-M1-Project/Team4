@@ -99,7 +99,7 @@ def calculate_similarities(color_base, metric, dimension, QS_Histograms, DB_Hist
     return predictions
 
 
-def calculate_image_histogram(image, image_mask, color_base, dimension, level):
+def calculate_image_histogram(image, image_mask, color_base, dimension, level, x_pixel_to_split, side):
     """
     Calls the function that calculates the histogram in the specified color base for each of the pictures that are
     located in the specified path.
@@ -109,9 +109,11 @@ def calculate_image_histogram(image, image_mask, color_base, dimension, level):
     :param color_base: string indicating the color base in which the histogram needs to be calculated
     :param dimension:
     :param level:
+    :param x_pixel_to_split: indicates the x pixel to split the image and mask if there are more than one painting
+    :param side: indicates the side to split the image and mask if there are more than one painting
     :return: Array or matrix containing the resulting histogram
     """
-    return get_image_histogram(image, image_mask, color_base, dimension, level)
+    return get_image_histogram(image, image_mask, color_base, dimension, level, x_pixel_to_split, side)
 
 
 def get_top_k(predictions, k):
@@ -193,3 +195,17 @@ def evaluate_text(GT_bounding_boxes, result_bounding_boxes):
     """
 
     return bounding_boxes_evaluation(GT_bounding_boxes, result_bounding_boxes)
+
+
+def detect_paintings(query_image, mask, idx):
+    """
+    This function evaluates how many paintings there are in a given image, using the background mask
+    of the image
+    :param query_image: image to evaluate number of paintings
+    :param mask: background binary mask of the image
+
+    return: 0 if there is only one painting
+            x_value_to_split: indicates the horizontal pixel where we want to split the image when there are two paintings
+    """
+    
+    return paintings_detection(query_image, mask, idx)
