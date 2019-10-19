@@ -116,7 +116,7 @@ def calculate_image_histogram(image, image_mask, color_base, dimension, level, x
     return get_image_histogram(image, image_mask, color_base, dimension, level, x_pixel_to_split, side)
 
 
-def get_top_k(predictions, k):
+def get_top_k(predictions, k, number_subimages_dic):
     """
     This function returns an array of size (n_queries x k) with the index of the images
     from the dataset that are closer to the query image.
@@ -124,13 +124,34 @@ def get_top_k(predictions, k):
     :param predictions: matrix containing, for each of the queries, all the museum images ordered
                         by distance in ascending order
     :param k: number of closer images to keep for each query
+    :param number_subimages_dic: dictionary containing the number of subimages for each image
     :return: array of size (n_queries x k) with the top-k closer images to each of the queries
     """
+    predictions_to_return = []
+    if number_subimages_dic is None:
+        for element in predictions:
+            del(element[k:])
+            predictions_to_return.append(element)
+    else:
+        predictions_idx = 0
+        for idx, number_subimages in number_subimages_dic.items():
+            print(idx)
+            if number_subimages == 1:
+                del(predictions[idx][k:])
+                predictions_to_return.append(predictions[idx])
+            else:
+                aux_list = []
+                del (predictions[predictions_idx][k:])
+                aux_list.append(predictions[predictions_idx])
+                predictions_idx += 1
+                del (predictions[predictions_idx][k:])
+                aux_list.append(predictions[predictions_idx])
+                predictions_to_return.append(aux_list)
+                print(aux_list)
 
-    for element in predictions:
-        del(element[k:])
+            predictions_idx += 1
 
-    return predictions
+    return predictions_to_return
 
 
 def get_mapk(GT, predictions, k):
