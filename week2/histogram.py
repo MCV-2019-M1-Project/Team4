@@ -124,7 +124,6 @@ def get_level_histograms(image, mask, color_base, dimension, num_blocks):
                 block_mask = mask[i:i + height_block, j:j + width_block]
             else:
                 block_mask = None
-            #cv2.imwrite('cropped/' + str(i) + str(j) + ".png", block)
             if color_base == 'Grayscale':
                 histograms.extend(calculate_1d_histogram_grayscale(block))
             elif color_base != "Grayscale" and dimension == '1D':
@@ -153,12 +152,12 @@ def get_image_histogram(image, mask, color_base, dimension, level, x_pixel_to_sp
 
     image = cv2.imread(image)
 
-    if (x_pixel_to_split != None):
-        if (side == "left"):
+    if x_pixel_to_split is not None:
+        if side == "left":
             image = image[1:image.shape[0], 1:int(x_pixel_to_split)]
             mask = mask[1:mask.shape[0], 1:int(x_pixel_to_split)]
 
-        elif (side == "right"):
+        elif side == "right":
             image = image[1:image.shape[0], int(x_pixel_to_split):image.shape[1]]
             mask = mask[1:mask.shape[0], int(x_pixel_to_split):mask.shape[1]]
 

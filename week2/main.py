@@ -32,10 +32,12 @@ if __name__ == '__main__':
     text_removal = sys.argv[7]
     text_method = int(sys.argv[8])
 
+    # IMPORTANT PARAMETERS
     save_to_pickle = False
     save_to_pickle_text = False
     ground_truth_available = True
     ground_truth_text_available = True
+    multiple_subimages = False
     level = 1
 
     # Get Ground Truth
@@ -52,62 +54,6 @@ if __name__ == '__main__':
     museum_filenames = glob.glob(test_set_path + '*.jpg')
     museum_filenames.sort()
 
-    # Get query images filenames
-    print("Getting Query Image")
-    query_filenames = glob.glob(query_set_path + '*.jpg')
-    query_filenames.sort()
-
-    # Detect bounding boxes for text (result_text) and compute IoU parameter
-    if text_removal == "True":
-        print("Detecting text in the image")
-        result_text = detect_bounding_boxes(query_set_path, text_method)
-        number_subimages = {}
-        
-        acc_hgram_qimages = {}
-        for ind, q_fn in enumerate(query_filenames):
-            temp_img = cv2.imread(q_fn)
-            temp = np.zeros((temp_img.shape[0], temp_img.shape[1]), dtype=np.uint8) 
-            temp[result_text[ind][0][0]:result_text[ind][0][2], result_text[ind][0][1]:result_text[ind][0][3]] = 255
-            acc_hgram_qimages[ind] = calculate_image_histogram(q_fn, temp, color_base, dimension, level, None, None)
-        
-        # Task 6
-        print('Getting the QSD2_W2 background Masks')
-        q_mask_filenames = glob.glob(query_set_path + '*.png')
-        q_mask_filenames.sort()
-
-        acc_hgram_qimgs_sin_bck_text = {}
-        cnt = 0
-        for ind, q_fn in enumerate(query_filenames):
-            # Get the background mask
-            temp_bck_mask = cv2.imread(q_fn.replace('.jpg', '.png'))
-            temp_bck_mask = np.where(temp_bck_mask==255, 1, temp_bck_mask)
-            
-            output = paintings_detection(q_fn.replace('.jpg', '_sin_text.png'), cv2.cvtColor(temp_bck_mask,
-                                                                                             cv2.COLOR_BGR2GRAY))
-            if output > 0:
-                number_subimages[ind] = 2
-                acc_hgram_qimgs_sin_bck_text[cnt] = calculate_image_histogram(q_fn.replace('.jpg', '_1_sin_bck_text.png'),
-                                                                              None, color_base, dimension, level, None,
-                                                                              None)
-                cnt= cnt+1
-                acc_hgram_qimgs_sin_bck_text[cnt] = calculate_image_histogram(q_fn.replace('.jpg', '_2_sin_bck_text.png'),
-                                                                              None, color_base, dimension, level, None,
-                                                                              None)
-                cnt= cnt+1
-            else:
-                number_subimages[ind] = 1
-                acc_hgram_qimgs_sin_bck_text[cnt] = calculate_image_histogram(q_fn.replace('.jpg', '_sin_bck_text.png'),
-                                                                              None, color_base, dimension, level, None,
-                                                                              None)
-                cnt = cnt+1
-
-        IoU = evaluate_text(GT_text, result_text)
-        print("Intersection over Union: ", str(IoU))
-
-    if save_to_pickle_text:
-        print("Saving Results to Pickle File")
-        save_to_pickle_file(result_text, 'results/QST1/method2/text_boxes.pkl')
-
     # Get Museum Histograms
     print("Getting Museum Histograms")
     museum_histograms = {}
@@ -117,14 +63,76 @@ if __name__ == '__main__':
         museum_histograms[idx] = calculate_image_histogram(museum_image, None, color_base, dimension, level, None, None)
         idx += 1
 
+    # Get query images filenames
+    print("Getting Query Image")
+    query_filenames = glob.glob(query_set_path + '*.jpg')
+    query_filenames.sort()
+    query_histograms = {}
+
+    # Detect bounding boxes for text (result_text) and compute IoU parameter
+    if text_removal == "True":
+        print("Detecting text in the image")
+        result_text = detect_bounding_boxes(query_set_path, text_method)
+
+        # Check if the text results need to be saved in a pickle file
+        if save_to_pickle_text:
+            print("Saving Results to Pickle File")
+            save_to_pickle_file(result_text, 'results/QST1/method2/text_boxes.pkl')
+
+        # Evaluation of the text Removal
+        IoU = evaluate_text(GT_text, result_text)
+        print("Intersection over Union: ", str(IoU))
+
     # Get query images histograms
     print("Getting Query Histograms")
     idx = 0
-    query_histograms = {}
     masks = {}
     for query_image in query_filenames:
         print("Getting Histogram for Query Image " + str(idx))
-        if background_removal == "True":
+        if text_removal == "True" and not multiple_subimages:
+            # Get histograms for each one of the images in the query filenames
+            number_subimages = {}
+            temp_img = cv2.imread(query_image)
+            temp = np.zeros((temp_img.shape[0], temp_img.shape[1]), dtype=np.uint8)
+            temp[result_text[idx][0][0]:result_text[idx][0][2], result_text[idx][0][1]:result_text[idx][0][3]] = 255
+            query_histograms[idx] = calculate_image_histogram(query_image, temp, color_base, dimension, level, None,
+                                                              None)
+        elif text_removal == "True" and multiple_subimages:
+            print('Getting the QSD2_W2 background Masks')
+            q_mask_filenames = glob.glob(query_set_path + '*.png')
+            q_mask_filenames.sort()
+
+            query_histograms = {}
+
+            temp_img = cv2.imread(query_image)
+            temp_img_sin_bck_text = cv2.imread(query_image.replace('.jpg', '_sin_bck_text.png'))
+            # Get the text mask
+            # Get the text mask
+            temp = np.ones((temp_img.shape[0], temp_img.shape[1]), dtype=np.uint8)
+            for indx in range(0, len(result_text[idx])):
+                temp[result_text[idx][indx][1]:result_text[idx][indx][3], result_text[idx][indx][0]:result_text[idx][indx][2]] = 0
+            temp_text = np.concatenate((np.expand_dims(temp,axis=2), np.expand_dims(temp,axis=2), np.expand_dims(temp,axis=2)), axis=2)
+            temp_sin_text = temp_img * temp_text
+
+            # Get the background mask
+            temp_bck_mask = cv2.imread(query_image.replace('.jpg', '.png'))
+            temp_bck_mask = np.where(temp_bck_mask==255, 1, temp_bck_mask)
+
+            output = paintings_detection(query_image.replace('.jpg', '_sin_text.png'), cv2.cvtColor(temp_bck_mask,
+                                                                                                 cv2.COLOR_BGR2GRAY))
+            if output > 0:
+                number_subimages[idx] = 2
+                query_histograms[idx] = calculate_image_histogram(query_image.replace('.jpg', '_1_sin_bck_text.png'),
+                                                                  None, color_base, dimension, level, None, None)
+                idx += 1
+                query_histograms[idx] = calculate_image_histogram(query_image.replace('.jpg', '_2_sin_bck_text.png'),
+                                                                  None, color_base, dimension, level,  None, None)
+                idx += 1
+            else:
+                number_subimages[idx] = 1
+                query_histograms[idx] = calculate_image_histogram(query_image.replace('.jpg', '_sin_bck_text.png'), None,
+                                                                  color_base, dimension, level, None, None)
+        elif background_removal == "True":
             masks[idx] = get_mask(query_image, masks_path, idx)
             # Detects if there is more than one painting (0 if there is only one painting)
             x_pixel_to_split = paintings_detection(query_image, masks[idx])
@@ -132,23 +140,18 @@ if __name__ == '__main__':
                 query_histograms[idx] = calculate_image_histogram(query_image, masks[idx], color_base, dimension, level,
                                                                   None, None)
         else:
-            query_histograms[idx] = calculate_image_histogram(query_image, None,  color_base, dimension, level, None,
+            query_histograms[idx] = calculate_image_histogram(query_image, None, color_base, dimension, level, None,
                                                               None)
         idx += 1
 
     # Compute similarities to museum images for each image in the Query Set 1 and 2
-    if sys.argv[3] == 'qsd2_w1':
+    if multiple_subimages:
+        print("Getting Similarities for Query Set2 and Museum")
+        predictions = calculate_similarities(color_base, metric, dimension, query_histograms, museum_histograms)
+        top_k = get_top_k(predictions, k, number_subimages)
+    else:
         print("Getting Predictions")
         predictions = calculate_similarities(color_base, metric, dimension, query_histograms, museum_histograms)
-        top_k = get_top_k(predictions, k, None)
-    elif sys.argv[3] == 'qsd2_w2':
-        print("Getting Similarities for Query Set2 and Museum")
-        predictions = calculate_similarities(color_base, metric, dimension, acc_hgram_qimgs_sin_bck_text,
-                                             museum_histograms)
-        top_k = get_top_k(predictions, k, number_subimages)
-    elif sys.argv[3] == 'qsd1_w2':
-        print("Getting Similarities for Query Set and Museum")
-        predictions = calculate_similarities(color_base, metric, dimension, acc_hgram_qimages, museum_histograms)
         top_k = get_top_k(predictions, k, None)
 
     print("Ground Truth")
