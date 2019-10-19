@@ -5,6 +5,7 @@ Options:
 """
 
 from evaluation import *
+from mask import *
 
 import sys
 import glob
@@ -62,6 +63,51 @@ if __name__ == '__main__':
             temp = np.zeros((temp_img.shape[0], temp_img.shape[1]), dtype=np.uint8) 
             temp[result_text[ind][0][0]:result_text[ind][0][2], result_text[ind][0][1]:result_text[ind][0][3]] = 255
             acc_hgram_qimages[ind] = calculate_image_histogram(q_fn, temp, color_base, dimension, level, None, None)
+        
+        # Task 6
+        print('Getting the QSD2_W2 background Masks')
+        q_mask_filenames = glob.glob(query_set_path + '*.png')
+        q_mask_filenames.sort()
+
+        acc_hgram_qimgs_sin_bck_text = {}
+        cnt = 0
+        for ind, q_fn in enumerate(query_filenames):
+            #temp_img = cv2.imread(q_fn)
+            #temp_img_sin_bck_text = cv2.imread(q_fn.replace('.jpg', '_sin_bck_text.png'))
+            # Get the text mask
+            #temp = np.ones((temp_img.shape[0], temp_img.shape[1]), dtype=np.uint8)
+            #for indx in range(0, len(result_text[ind])):
+             #   temp[result_text[ind][indx][1]:result_text[ind][indx][3], result_text[ind][indx][0]:result_text[ind][indx][2]] = 0
+            #temp_text = np.concatenate((np.expand_dims(temp,axis=2), np.expand_dims(temp,axis=2), np.expand_dims(temp,axis=2)), axis=2)
+            #temp_sin_text = temp_img * temp_text
+            #cv2.imwrite(('/home/sounak/Desktop/Team4/week2/'+q_fn[:-4]+'_sin_text.png'),temp_sin_text)
+            #cv2.imwrite(('/home/sounak/Desktop/Team4/week2/'+q_fn[:-4]+'_sin_text_mask.png'),temp_text)
+            # Get the background mask
+            temp_bck_mask = cv2.imread(q_fn.replace('.jpg', '.png'))
+            temp_bck_mask = np.where(temp_bck_mask==255, 1, temp_bck_mask)
+            
+            output = paintings_detection(q_fn.replace('.jpg', '_sin_text.png'), cv2.cvtColor(temp_bck_mask, cv2.COLOR_BGR2GRAY))
+            if output > 0:
+                acc_hgram_qimgs_sin_bck_text[cnt] = calculate_image_histogram(q_fn.replace('.jpg', '_1_sin_bck_text.png'), None, color_base, dimension, level, None, None)
+                cnt= cnt+1
+                acc_hgram_qimgs_sin_bck_text[cnt] = calculate_image_histogram(q_fn.replace('.jpg', '_2_sin_bck_text.png'), None, color_base, dimension, level, None, None)
+                cnt= cnt+1
+            else:
+                
+                acc_hgram_qimgs_sin_bck_text[cnt] = calculate_image_histogram(q_fn.replace('.jpg', '_sin_bck_text.png'), None, color_base, dimension, level, None, None)
+                cnt= cnt+1
+                #import pdb; pdb.set_trace()
+                #img_split1 = temp_img_sin_bck_text[:, 0:int(output) , :]
+                #cv2.imwrite(('/home/sounak/Desktop/Team4/week2/'+q_fn[:-4]+'_1_sin_bck_text.png'),img_split1)
+                #img_split2 = temp_img_sin_bck_text[:, int(output):, :]
+                #cv2.imwrite(('/home/sounak/Desktop/Team4/week2/'+q_fn[:-4]+'_2_sin_bck_text.png'),img_split2) 
+            
+            # Save images sin bck and text
+            #temp_sin_bck_text = temp_sin_text*temp_bck_mask
+            #cv2.imwrite(('/home/sounak/Desktop/Team4/week2/'+q_fn[:-4]+'_sin_bck_text.png'),temp_sin_bck_text)
+            #acc_hgram_qimages[ind] = calculate_image_histogram(q_fn, temp, color_base, dimension, level)   
+         
+        
             
          
 
@@ -118,6 +164,14 @@ if __name__ == '__main__':
         print("Getting Predictions")
         predictions = calculate_similarities(color_base, metric, dimension, query_histograms, museum_histograms)
         top_k = get_top_k(predictions, k)
+    elif sys.argv[3] == 'qsd2_w2':
+        print("Getting Similarities for Query Set2 and Museum")
+        predictions = calculate_similarities(color_base, metric, dimension, acc_hgram_qimgs_sin_bck_text, museum_histograms)
+        top_k = get_top_k(predictions, k)
+        print("Ground Truth")
+        print(GT)
+        print("Top " + str(k))
+        print(top_k)
     elif sys.argv[3] == 'qsd1_w2':
         print("Getting Similarities for Query Set and Museum")
         predictions = calculate_similarities(color_base, metric, dimension, acc_hgram_qimages, museum_histograms)

@@ -92,7 +92,7 @@ def mask_evaluation(annotation_mask, result_mask):
     return recall, precision, f1_measure
 
 
-def paintings_detection(query_image, mask, idx):
+def paintings_detection(query_image, mask):
     """
     This function evaluates how many paintings there are in a given image, using the background mask
     of the image
