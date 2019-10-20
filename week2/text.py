@@ -128,7 +128,7 @@ def bounding_boxes_detection(path, method):
 
         # Append the corners of the bounding boxes to the boxes list
 
-        if (x_box_2 == y_box_2 == 0) | (path == 'images/qsd1_w2/'):
+        if (x_box_2 == y_box_2 == 0) | (path == 'images/qst1_w2/'):
             box = [[x_box_1, y_box_1, x_box_1 + w_box_1, y_box_1 + h_box_1]]
             boxes.append(box)
         elif x_box_1 < x_box_2:
