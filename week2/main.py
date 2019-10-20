@@ -34,7 +34,7 @@ if __name__ == '__main__':
 
     # IMPORTANT PARAMETERS
     save_to_pickle = False
-    save_to_pickle_text = True
+    save_to_pickle_text = False
     ground_truth_available = False
     ground_truth_text_available = False
     if query_set_path == "qsd2_w2":
