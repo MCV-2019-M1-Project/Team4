@@ -5,12 +5,12 @@ Options:
 """
 
 # VSCode imports
-#from evaluation import *
-#from mask import *
+from evaluation import *
+from mask import *
 
 # PyCharm Imports
-from week2.evaluation import *
-from week2.mask import *
+# from week2.evaluation import *
+# from week2.mask import *
 
 import sys
 import glob
@@ -35,15 +35,15 @@ if __name__ == '__main__':
     # IMPORTANT PARAMETERS
     save_to_pickle = False
     save_to_pickle_text = False
-    ground_truth_available = True
-    ground_truth_text_available = True
+    ground_truth_available = False
+    ground_truth_text_available = False
     if query_set_path == "qsd2_w2":
         multiple_subimages = True
     else:
         multiple_subimages = False
 
     print(multiple_subimages)
-    level = 1
+    level = 2
 
     # Get Ground Truth
     if ground_truth_available:
@@ -81,11 +81,12 @@ if __name__ == '__main__':
         # Check if the text results need to be saved in a pickle file
         if save_to_pickle_text:
             print("Saving Results to Pickle File")
-            save_to_pickle_file(result_text, 'results/QST1/method2/text_boxes.pkl')
+            save_to_pickle_file(result_text, 'results/QST2/method2/text_boxes.pkl')
 
         # Evaluation of the text Removal
-        IoU = evaluate_text(GT_text, result_text)
-        print("Intersection over Union: ", str(IoU))
+        if ground_truth_text_available:
+            IoU = evaluate_text(GT_text, result_text)
+            print("Intersection over Union: ", str(IoU))
 
     # Get query images histograms
     print("Getting Query Histograms")
