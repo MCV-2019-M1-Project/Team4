@@ -53,17 +53,17 @@ def calculate_1d_histogram_color(image, mask, color_base):
 
 def calculate_2d_histogram(image, mask, color_base):
     """
+    This function calculates a 2D YCrCb, LAB or HSV histogram.
 
-    :param image:
-    :param mask:
-    :param color_base:
-    :return:
+    :param image: cv2 image
+    :param mask: mask to apply to the image. If mask == None, no mask is applied
+    :param color_base: String that indicates in which color base the histogram has to be calculated
     """
     if color_base == 'HSV':
         image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
         range_hist = [0, 180, 0, 256]
         channels = [0, 1]
-    elif color_base == 'LAB': #NOT WORKING AS EXPECTED
+    elif color_base == 'LAB':
         image = cv2.cvtColor(image, cv2.COLOR_BGR2Lab)
         range_hist = [0, 256, 0, 256]
         channels = [1, 2]
@@ -82,10 +82,11 @@ def calculate_2d_histogram(image, mask, color_base):
 
 def calculate_3d_histogram(image, mask, color_base):
     """
+    This function calculates a 3D BGR histogram.
 
-    :param image:
-    :param mask:
-    :param color_base:
+    :param image: cv2 image
+    :param mask: mask to apply to the image. If mask == None, no mask is applied
+    :param color_base: String that indicates in which color base the histogram has to be calculated
     :return:
     """
 
@@ -102,13 +103,14 @@ def calculate_3d_histogram(image, mask, color_base):
 
 def get_level_histograms(image, mask, color_base, dimension, num_blocks):
     """
+    This function gets the correct number of histograms for the image, depending on the level of the pyramid.
 
-    :param image:
-    :param mask:
-    :param color_base:
-    :param dimension:
-    :param num_blocks:
-    :return:
+    :param image: cv2 image
+    :param mask: mask to apply to the image. If mask == None, no mask is applied
+    :param color_base: String that indicates in which color base the histogram has to be calculated
+    :param dimension: integer indicating the dimension of the histograms
+    :param num_blocks: integer showing the number of divisions
+    :return: 1D array with the concatenated histograms
     """
 
     histograms = []
@@ -143,8 +145,8 @@ def get_image_histogram(image, mask, color_base, dimension, level, x_pixel_to_sp
     :param image: String indicating the path where the images are located
     :param mask: mask to apply to the image. If mask == None, no mask is applied
     :param color_base: String that indicates in which color base the histogram has to be calculated
-    :param dimension:
-    :param level:
+    :param dimension: integer indicating the dimension of the histograms
+    :param level: integer showing the level of the pyramid (multiresolution histograms)
     :param x_pixel_to_split: indicates the x pixel to split the image and mask if there are more than one painting
     :param side: indicates the side to split the image and mask if there are more than one painting
     :return: a dictionary where the keys are the index of the images and the values are the histograms
@@ -180,4 +182,3 @@ def get_image_histogram(image, mask, color_base, dimension, level, x_pixel_to_sp
         return histogram
     else:
         raise Exception("The selected level is not correct")
-

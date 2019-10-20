@@ -161,12 +161,10 @@ if __name__ == '__main__':
         map_k = get_mapk(GT, predictions, k)
         print('Map@K result: ' + str(map_k))
 
-    if query_set_path == "qsd2_w1":   # Now crashes because of masks names, so I changed that
+    if background_removal == "True":
         print("Getting Precision, Recall and F1 score")
         GT_masks = glob.glob(query_set_path + '000*.png')  # Load masks from the ground truth
         GT_masks.sort()
-
-        print(GT_masks)
 
         mean_precision = []
         mean_recall = []
