@@ -2,18 +2,18 @@
 
 Members: Sergio Casas Pastor, Sanket Biswas, Josep Brugués i Pujolràs
 
-### Week 1
+### Week 2
 
-The tasks for the first week include:
+The tasks for the second week include:
 
-* Create histogram image descriptors for both the museum images and the query sets
-* Implement similarity measures to compare the images
-* Implement a retrieval system to get the K top results
-* Evaluate the results using the MAP@k metric
-* Background removal of images from QS2
-* Evaluate the masks and the retrieval system for QS2
+* Create 2D/3D blocks and multiresolution histograms image descriptors
+* Test system using new histograms and query set from last week QS2-W1
+* Detect and remove text from images
+* Evaluate text detection using bounding boxes and IoU parameter
+* Evaluate the retrieval system for QS1-W2 removing the text region
+* Evaluate the retrieval system for QS2-W2 which contains more than one painting per image, removing background and text regions
 
-Slides for Week 1 are available here: [Slides](https://drive.google.com/file/d/12lkVgFkJs0ZWDThkyyTrXcP2W6iZ5FQz/view?usp=sharing)
+Slides for Week 2 are available here: [Slides](https://drive.google.com/open?id=1HnHFoQNfw116Y6bx3lS0ndQQlz-D3-SC)
 
 ### How to run
 
@@ -49,9 +49,13 @@ The metric parameter indicates the metric that is used for comparing the images.
  
 The k parameter is used to indicate the number of top results that need to be saved.
 
-The backgroundRemoval parameter indicates if background has to be removed from the query set images. True for background removal and False for no background removal.
+The backgroundRemoval parameter indicates if background has to be removed from the query set images. 
+* True: background removal
+* False: no background removal.
 
-The textRemoval parameter indicates if the text has to be removed from the query set images. True for text removal and False for no text removal.
+The textRemoval parameter indicates if the text has to be removed from the query set images. 
+* True: text removal 
+* False: no text removal.
 
 The textRemovalMethod parameter indicates the method used for text detection:
 * 1 : text detection based on color segmentation
