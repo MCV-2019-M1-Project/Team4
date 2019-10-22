@@ -1,0 +1,7 @@
+scipy
+ml_metrics
+numpy
+matplotlib
+opencv-python 
+glob 
+os
