@@ -26,7 +26,7 @@ def mask_creation(image, mask_path, image_index):
     """
     # convert image to hsv color space
     image = cv2.imread(image)
-
+    
     im_hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
     h, s, v = cv2.split(im_hsv)
 
@@ -37,12 +37,12 @@ def mask_creation(image, mask_path, image_index):
 
     # compute lower and upper limits for the mask
     # we need to find the good limits to segment the background by color
-    lower_hue = (hue_mean_border - 20)
-    upper_hue = (hue_mean_border + 20)
-    lower_saturation = (saturation_mean_border - 30)
-    upper_saturation = (saturation_mean_border + 30)
-    lower_value = (value_mean_border - 150)
-    upper_value = (value_mean_border + 150)
+    lower_hue = (hue_mean_border - 40)
+    upper_hue = (hue_mean_border + 40)
+    lower_saturation = (saturation_mean_border - 20)
+    upper_saturation = (saturation_mean_border + 20)
+    lower_value = (value_mean_border - 200)
+    upper_value = (value_mean_border + 200)
 
     lower_limit = np.array([lower_hue, lower_saturation, lower_value])
     upper_limit = np.array([upper_hue, upper_saturation, upper_value])
@@ -50,6 +50,10 @@ def mask_creation(image, mask_path, image_index):
     # create mask
     mask = cv2.inRange(im_hsv, lower_limit, upper_limit)
     mask = cv2.bitwise_not(mask)
+
+    # resize masks
+    n_mask, m_mask = mask.shape[0], mask.shape[1]
+    mask = cv2.resize(mask, (1000, 1000)) 
 
     # apply mask to find contours
     mask = np.uint8(mask)
@@ -59,14 +63,16 @@ def mask_creation(image, mask_path, image_index):
     # create new mask with the contours found
     new_mask = cv2.fillPoly(mask, contours, [255, 255, 255])
 
-    # ------- image_with_mask = cv2.bitwise_and(im, im, mask = new_mask) ----------
-    # print(im)
+    # Apply morphological filter to clean
+    kernel = np.ones((9, 9), np.float32)/25
+    new_mask = cv2.morphologyEx(new_mask, cv2.MORPH_ERODE, kernel, iterations = 2)
+    new_mask = cv2.morphologyEx(new_mask, cv2.MORPH_DILATE, kernel, iterations = 1)
+
+    # resize masks to original size
+    new_mask = cv2.resize(new_mask, (m_mask, n_mask))
 
     # save mask image inside the same folder as the image
-    cv2.imwrite(mask_path + "a" + str(image_index).zfill(2) + "_mask.png", new_mask)
-
-    # save image with mask applied in same folder
-    # cv2.imwrite(path + str(idx) + "_image_with_mask.png", image_with_mask)
+    # cv2.imwrite(mask_path + str(image_index).zfill(2) + "_mask.png", new_mask)
 
     return new_mask
 

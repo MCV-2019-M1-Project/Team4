@@ -5,12 +5,12 @@ Options:
 """
 
 # VSCode imports
-# from evaluation import *
-# from mask import *
+from evaluation import *
+from mask import *
 
 # PyCharm Imports
-from week2.evaluation import *
-from week2.mask import *
+# from week2.evaluation import *
+# from week2.mask import *
 
 import sys
 import glob
@@ -35,8 +35,8 @@ if __name__ == '__main__':
     # IMPORTANT PARAMETERS
     save_to_pickle = False
     save_to_pickle_text = False
-    ground_truth_available = True
-    ground_truth_text_available = True
+    ground_truth_available = False
+    ground_truth_text_available = False
     if query_set_path == "qsd2_w2":
         multiple_subimages = True
     else:
@@ -153,10 +153,11 @@ if __name__ == '__main__':
         predictions = calculate_similarities(color_base, metric, dimension, query_histograms, museum_histograms)
         top_k = get_top_k(predictions, k, None)
 
-    print("Ground Truth")
-    print(GT)
-    print("Top " + str(k))
-    print(top_k[1][1][0])
+    if ground_truth_available:
+        print("Ground Truth")
+        print(GT)
+        print("Top " + str(k))
+        print(top_k)
 
     if save_to_pickle:
         print("Saving Results to Pickle File")
