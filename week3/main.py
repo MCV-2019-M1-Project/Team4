@@ -41,7 +41,7 @@ if __name__ == '__main__':
         multiple_subimages = True
     else:
         multiple_subimages = False
-    level = 2
+    level = 1
     texture_descriptor_level = 2
 
     # Get Ground Truth

@@ -13,6 +13,7 @@ def calculate_1d_histogram_grayscale(image, mask):
 
     hist = cv2.calcHist([cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)], [0], mask, [32], [0, 256])
     cv2.normalize(hist, hist)
+    print(hist)
 
     return hist
 
@@ -152,7 +153,8 @@ def get_image_histogram(image, mask, color_base, dimension, level, x_pixel_to_sp
     :return: a dictionary where the keys are the index of the images and the values are the histograms
     """
 
-    image = cv2.imread(image)
+    if type(image) == str:
+        image = cv2.imread(image)
 
     if x_pixel_to_split is not None:
         if side == "left":
