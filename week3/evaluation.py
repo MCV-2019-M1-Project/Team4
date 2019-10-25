@@ -229,3 +229,31 @@ def detect_paintings(query_image, mask, idx):
     """
     
     return paintings_detection(query_image, mask, idx)
+
+    
+def remove_noise(query_path, query_image, idx, PSNR):
+
+    # Remove noise
+
+    image = cv2.imread(query_image)
+    denoised_image = cv2.medianBlur(image, 7)
+    # denoised_image = cv2.fastNlMeansDenoisingColored(image, None, 12,12,7,21)
+
+    # edges = cv2.Canny(image, 50, 150, apertureSize = 3)
+    # cv2.imshow('edges', edges)
+    # cv2.waitKey(0)
+
+    print("Getting denoised image: " + str(idx))
+    cv2.imwrite(query_path + '_denoised/' + "{0:0=5d}".format(idx) + '.jpg', denoised_image)
+
+    # Compute PSNR
+    MSE = np.mean((image - denoised_image) ** 2)
+    if MSE == 0:
+        PSNR_image = 100
+    else:
+        PSNR_image = 10 * np.log10((255**2) / np.sqrt(MSE))
+
+    PSNR.append(PSNR_image)
+
+    return PSNR
+    

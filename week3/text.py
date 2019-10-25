@@ -23,7 +23,7 @@ def bounding_boxes_detection(path, method):
     """
 
     # Open folder that contains the images
-    query_filenames = glob.glob(path + '00' + '*.jpg')
+    query_filenames = glob.glob(path + '*.jpg')
     query_filenames.sort()
 
     # Create the empty list to store the bounding boxes coordinates
@@ -128,7 +128,7 @@ def bounding_boxes_detection(path, method):
 
         # Append the corners of the bounding boxes to the boxes list
 
-        if (x_box_2 == y_box_2 == 0) | (path == 'images/qst1_w2/'):
+        if (x_box_2 == y_box_2 == 0) | (path == 'images/qst1_w3_denoised/'):
             box = [[x_box_1, y_box_1, x_box_1 + w_box_1, y_box_1 + h_box_1]]
             boxes.append(box)
         elif x_box_1 < x_box_2:
@@ -138,7 +138,7 @@ def bounding_boxes_detection(path, method):
             box = [[x_box_2, y_box_2, x_box_2 + w_box_2, y_box_2 + h_box_2], [x_box_1, y_box_1, x_box_1 + w_box_1, y_box_1 + h_box_1]]
             boxes.append(box)
         
-        # cv2.imwrite(str(idx) + '.png', text_mask)
+        # cv2.imwrite(str(idx) + '.png', image)
 
         idx += 1
 
