@@ -141,7 +141,7 @@ def bounding_boxes_detection(path, method):
 
         idx += 1
 
-    return boxes
+    return text_mask, boxes
 
 
 def bounding_boxes_evaluation(boxA, boxB):
