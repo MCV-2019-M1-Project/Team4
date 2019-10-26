@@ -44,6 +44,7 @@ def calculate_hist_distance(color_base, metric, dimension, hist_a, hist_b):
     This function calculates the distance between 2 histograms in the chosen metric.
 
     :param color_base: string indicating the color base in which the histogram has been calculated
+    :param dimension:
     :param metric: string indicating which metric to use to calculate the distance
     :param hist_a: array or matrix containing histogram 1
     :param hist_b: array or matrix containing histogram 2
@@ -149,7 +150,7 @@ def get_top_k(predictions, k, number_subimages_dic):
     if number_subimages_dic is None:
         for element in predictions:
             del(element[k:])
-            predictions_to_return.append(element[0])
+            predictions_to_return.append(element)
     else:
         predictions_idx = 0
         for idx, number_subimages in number_subimages_dic.items():
