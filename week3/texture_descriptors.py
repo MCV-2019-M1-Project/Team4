@@ -7,17 +7,19 @@ def LBP_descriptor(image, num_blocks, mask):
     """
     This function calculates the LBP descriptor for a given image.
 
-    :param image:
-    :param num_blocks:
-    :param mask:
-    :return:
+    :param image: image used to calculate the LBP function
+    :param num_blocks: number of blocks in which both the height and the width will be divided into
+    :param mask: binary mask that will be applied to the image
+    :return: the LBP feature array
     """
 
     descriptor = []
     grayscale_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     grayscale_image = cv2.resize(grayscale_image, (256, 256), interpolation=cv2.INTER_AREA)
+
     if mask is not None:
         mask = cv2.resize(mask, (256, 256), interpolation=cv2.INTER_AREA)
+
     height, width = grayscale_image.shape[:2]
     height_block = int(np.ceil(height / num_blocks))  # Number of height pixels for sub-image
     width_block = int(np.ceil(width / num_blocks))  # Number of width pixels for sub-image
@@ -45,17 +47,21 @@ def LBP_descriptor(image, num_blocks, mask):
 
 def DCT_descriptor(image, num_blocks, mask):
     """
-    :param image:
-    :param num_blocks:
-    :param mask:
-    :return:
+    This function calculates the DCT texture descriptor for the given image.
+    :param image: image used to calculate the DCT function
+    :param num_blocks: number of blocks in which both the height and the width will be divided into
+    :param mask: binary mask that will be applied to the image
+    :return: the DCT feature array
     """
-
-    # NOT WORKING
 
     descriptor = []
     number_coefficients = 100
     resized_image = cv2.resize(image, (512, 512), interpolation=cv2.INTER_AREA)
+
+    if mask is not None:
+        resized_mask = cv2.resize(mask, (512, 512), interpolation=cv2.INTER_AREA)
+        resized_image = cv2.bitwise_and(resized_image, resized_image, mask=resized_mask)
+
     grayscale_image = cv2.cvtColor(resized_image, cv2.COLOR_BGR2GRAY)
     height, width = grayscale_image.shape[:2]
     height_block = int(np.ceil(height / num_blocks))  # Number of height pixels for sub-image
@@ -67,8 +73,6 @@ def DCT_descriptor(image, num_blocks, mask):
 
             # Step 1: Calculate the DCT
             block_dct = cv2.dct(np.float32(block)/255.0)
-            #cv2.imshow("Image", block_dct)
-            #cv2.waitKey(0)
 
             # Step 2: Zig-Zag scan
             zig_zag_scan = np.concatenate([np.diagonal(block_dct[::-1, :], i)[::(2*(i % 2)-1)]
@@ -84,60 +88,37 @@ def HOG_descriptor(image, mask):
     """
     Computes the HOG (Histogram of Oriented Gradients) of the given image.
     :param image: image to which the HOG will be calculated
-    :param mask:
-    :return: the HOG of the given image
+    :param mask: binary mask that will be applied to the image
+    :return: array with the image features
     """
+    grayscale = True
+    multichannel = True
 
-    #cv2.imshow("Image1", image)
-    #cv2.waitKey(0)
     resized_image = cv2.resize(image, (512, 512), interpolation=cv2.INTER_AREA)
+
+    if grayscale:
+        resized_image = cv2.cvtColor(resized_image, cv2.COLOR_BGR2GRAY)
+        multichannel = False
+
     if mask is not None:
         resized_mask = cv2.resize(mask, (512, 512), interpolation=cv2.INTER_AREA)
         resized_image = cv2.bitwise_and(resized_image, resized_image, mask=resized_mask)
 
-    #cv2.imshow("Image2", resized_image)
-    #cv2.waitKey(0)
-
-    """win_size = (128, 128)
-    block_size = (8, 8)
-    block_stride = (8, 8)
-    cell_size = (8, 8)
-    n_bins = 9
-    deriv_aperture = 1
-    win_sigma = 4.
-    histogram_norm_type = 0
-    L2_hys_threshold = 0.2
-    gamma_correction = 0
-    n_levels = 9
-    hog = cv2.HOGDescriptor(win_size, block_size, block_stride, cell_size, n_bins, deriv_aperture, win_sigma,
-                            histogram_norm_type, L2_hys_threshold, gamma_correction, n_levels)
-
-    win_stride = (8, 8)
-    padding = (8, 8)
-    #print(hog.compute(image, win_stride, padding))
-    #print(np.size(hog.compute(image, win_stride, padding)))
-
-    hog = cv2.HOGDescriptor()
-    print(hog.compute(image))
-    print(np.size(hog.compute(image)))
-
-    return hog.compute(image)
-    #print(hog.compute(image, win_stride, padding))
-    return hog.compute(image, win_stride, padding)"""
-
     return feature.hog(resized_image, orientations=9, pixels_per_cell=(8, 8), cells_per_block=(3, 3),
                        block_norm='L2-Hys', visualize=False, transform_sqrt=False, feature_vector=True,
-                       multichannel=None)
+                       multichannel=multichannel)
 
 
 def get_image_texture_descriptor(image, descriptor, descriptor_level, mask):
     """
-
-    :param image:
-    :param descriptor:
-    :param descriptor_level:
-    :param mask:
-    :return:
+    This functions returns a feature array for a given image. Supported methods to extract the feture vector are LBP,
+    DCT and HOG
+    :param image: image to which the HOG will be calculated
+    :param descriptor: LBP, DCT or HOG descriptors
+    :param descriptor_level: integer indicating the descriptor level. It is used to calculate the number of blocks in
+    which the width and the height will be divided into (LBP and DCT descriptors only)
+    :param mask: binary mask that will be applied to the image
+    :return: feature array of the given image
     """
 
     # Check if the descriptor level is big enough
