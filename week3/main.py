@@ -35,6 +35,7 @@ if __name__ == '__main__':
     text_removal = sys.argv[3]
     text_method = int(sys.argv[4])
     k = int(sys.argv[5])
+    mask_gt_path = query_set_path
 
     # GT and results parameters
     save_to_pickle = False
@@ -43,22 +44,23 @@ if __name__ == '__main__':
     ground_truth_text_available = True
 
     # Denoise parameters
-    denoise = False
+    execute_denoise_process = False
+    use_denoised_images = True
 
     # Texture parameters
-    texture_descriptors = False
+    texture_descriptors = True
     texture_descriptor_level = 3
     texture_method = "LBP"
 
     # Histogram parameters
-    histogram_descriptors = False
-    color_base = "YCrCb"
+    histogram_descriptors = True
+    color_base = "LAB"
     dimension = '2D'
-    metric = "euclidean_distance"
+    metric = "bhattacharya_distance"
     level = 3
 
     # Text parameters
-    text_descriptors = True
+    text_descriptors = False
 
     if query_set_path == "qsd2_w2" or query_set_path == "qsd2_w3":
         multiple_subimages = True
@@ -123,7 +125,7 @@ if __name__ == '__main__':
         idx += 1
 
     # Remove noise from query set images and save the denoised images in a new folder used for the pipeline
-    if denoise:
+    if execute_denoise_process:
         query_noise_filenames = glob.glob(query_set_path + '/' + '*.jpg')
         query_noise_filenames.sort()
         idx = 0
@@ -132,24 +134,25 @@ if __name__ == '__main__':
             PSNR = remove_noise(test_set_path, query_set_path, query_noise_image, GT, idx, PSNR)
             idx += 1
 
-        query_set_path = query_set_path + '_denoised/'
         print("Minimum Peak Signal to Noise Ratio: " + str(np.min(PSNR)))
-
+    
+    # Use denoised_images or not
+    if use_denoised_images:
         # Get query images filenames
         print("Getting Query Image")
+        query_set_path = query_set_path + '_denoised/'
         query_filenames = glob.glob(query_set_path + '*.jpg')
         query_filenames.sort()
     else:
         # Get query images filenames
         print("Getting Query Image")
-        query_set_path = query_set_path + '_denoised/'
-        query_filenames = glob.glob(query_set_path + '*.jpg')
+        query_filenames = glob.glob(query_set_path + '/' + '*.jpg')
         query_filenames.sort()
 
     # Detect bounding boxes for text (result_text) and compute IoU parameter
     if text_removal == "True":
         print("Detecting text in the image")
-        result_text = detect_bounding_boxes(query_set_path, text_method)
+        text_mask, result_text = detect_bounding_boxes(query_set_path, text_method)
 
         # Check if the text results need to be saved in a pickle file
         if save_to_pickle_text:
@@ -324,7 +327,7 @@ if __name__ == '__main__':
 
     if background_removal == "True":
         print("Getting Precision, Recall and F1 score")
-        GT_masks = glob.glob(query_set_path +  '000*.png')  # Load masks from the ground truth
+        GT_masks = glob.glob(mask_gt_path + '/000*.png')  # Load masks from the ground truth
         GT_masks.sort()
 
         mean_precision = []
