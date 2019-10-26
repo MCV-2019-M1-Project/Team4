@@ -134,7 +134,7 @@ if __name__ == '__main__':
     else:
         # Get query images filenames
         print("Getting Query Image")
-        query_set_path = query_set_path + '/'
+        query_set_path = query_set_path + '_denoised/'
         query_filenames = glob.glob(query_set_path + '*.jpg')
         query_filenames.sort()
 
