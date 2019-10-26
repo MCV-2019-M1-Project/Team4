@@ -9,6 +9,10 @@ from evaluation import *
 from mask import *
 from texture_descriptors import *
 
+# Week3 imports
+from text_ocr import *
+from compute_text_distances import * 
+
 # PyCharm Imports
 # from week3.evaluation import *
 # from week3.mask import *
@@ -42,19 +46,19 @@ if __name__ == '__main__':
     denoise = False
 
     # Texture parameters
-    texture_descriptors = True
+    texture_descriptors = False
     texture_descriptor_level = 3
     texture_method = "LBP"
 
     # Histogram parameters
-    histogram_descriptors = True
+    histogram_descriptors = False
     color_base = "YCrCb"
     dimension = '2D'
     metric = "euclidean_distance"
     level = 3
 
     # Text parameters
-    text_descriptors = False
+    text_descriptors = True
 
     if query_set_path == "qsd2_w2" or query_set_path == "qsd2_w3":
         multiple_subimages = True
@@ -90,6 +94,7 @@ if __name__ == '__main__':
         museum_textures = None
     if text_descriptors:
         museum_ocrs = {}
+        museum_text_gt = {}
     else:
         museum_ocrs = None
 
@@ -110,7 +115,10 @@ if __name__ == '__main__':
         # Get text descriptor for museum image
         if text_descriptors:
             """TODO"""
-            pass
+            museum_ocrs[idx] = get_text(museum_image, text_method)
+            with open(museum_image,'r') as fp:
+                gt_text = fp.read().spiltlines()
+            museum_text_gt[idx] = gt_text
 
         idx += 1
 
@@ -170,6 +178,7 @@ if __name__ == '__main__':
         query_textures = None
     if text_descriptors:
         query_ocrs = {}
+        query_text_gt = {}
     else:
         query_ocrs = None
 
@@ -196,7 +205,14 @@ if __name__ == '__main__':
 
             if text_descriptors:
                 """TODO"""
-                pass
+                query_ocrs[idx] = get_text(query_image, text_method)
+            with open(query_image.replace('.jpg', '.txt'),'r') as fp:
+                gt_text = fp.read().spiltlines()
+            query_text_gt[idx] = gt_text
+            for q_o in query_ocrs[idx]:
+                for g_t in gt_text:
+                    dist = levenshtein_distance(q_o, g_t)
+                    print(dist)
 
         elif text_removal == "True" and multiple_subimages:
 

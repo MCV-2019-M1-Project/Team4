@@ -18,11 +18,13 @@ def extract_text(text_img_path):
     return pytesseract.image_to_string(Image.open(text_img_path))
 
 
-def get_text(img,img_path, method):
+def get_text(img_path, method):
    
     ''' This function returns the detected text after recognition '''
   
     print("Detecting textbox of images",img_path)
+    img = cv2.imread(img_path)
+    import pdb; pdb.set_trace()
     text_mask, text_box = bounding_boxes_detection(img, method)
     bbox = [text_box[0][1], text_box[0][0], text_box[1][1], text_box[1][0]]
     cv2.imwrite(img_path.replace(".jpg", "_boxmask.png"), cv2.resize(text_mask,(1000,1000)))

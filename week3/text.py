@@ -143,7 +143,6 @@ def bounding_boxes_detection(path, method):
 
     return text_mask, boxes
 
-
 def bounding_boxes_evaluation(boxA, boxB):
     """
     This function evaluates the accuracy of the result bounding boxes by calculating the parameter intersection over Union (IoU)
