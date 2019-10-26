@@ -249,23 +249,53 @@ def detect_paintings(query_image, mask, idx):
     return paintings_detection(query_image, mask, idx)
 
     
-def remove_noise(query_path, query_image, idx, PSNR):
+def remove_noise(test_set_path, query_path, query_image, GT, idx, PSNR):
 
     # Remove noise
 
     image = cv2.imread(query_image)
-    denoised_image = cv2.medianBlur(image, 7)
-    # denoised_image = cv2.fastNlMeansDenoisingColored(image, None, 12,12,7,21)
+    # denoised_image = cv2.medianBlur(image, 5)
+    # denoised_image = cv2.bilateralFilter (image, 7, 100, 100);
 
-    # edges = cv2.Canny(image, 50, 150, apertureSize = 3)
-    # cv2.imshow('edges', edges)
-    # cv2.waitKey(0)
+    # Adaptative median filter
+ 
+    denoised_image = image
+    kernel_max = 11
+    kernel = 1
+    minimum = cv2.erode(image, np.ones((kernel,kernel), np.uint8) / kernel**2, iterations = 1)
+    maximum = cv2.dilate(image, np.ones((kernel,kernel), np.uint8) / kernel**2, iterations = 1)
+    median = cv2.medianBlur(image, kernel)
+    
+    while (kernel <= kernel_max):
+        kernel += 2
 
-    print("Getting denoised image: " + str(idx))
+        minimum = cv2.erode(denoised_image, np.ones((kernel,kernel), np.uint8) / kernel**2, iterations = 1)
+        maximum = cv2.dilate(denoised_image, np.ones((kernel,kernel), np.uint8) / kernel**2, iterations = 1)
+        median = cv2.medianBlur(denoised_image, kernel)
+
+        for nChannel in range(image.shape[2]):
+            for i in range(image.shape[0]):
+                for j in range(image.shape[1]):
+
+                    if (minimum[i,j,nChannel] > median[i,j,nChannel]) | (median[i,j,nChannel] > maximum[i,j,nChannel]):
+                        continue
+                    elif (minimum[i,j,nChannel] == denoised_image[i,j,nChannel]) | (denoised_image[i,j,nChannel] == maximum[i,j,nChannel]):
+                        denoised_image[i,j,nChannel] = median[i,j,nChannel]
+
+
+    print("Getting denoised image " + str(idx))
     cv2.imwrite(query_path + '_denoised/' + "{0:0=5d}".format(idx) + '.jpg', denoised_image)
 
+    # Getting original image
+    museum_filenames = glob.glob(test_set_path + '*.jpg')
+    museum_filenames.sort()
+   
+    museum_image = museum_filenames[int(GT[idx][0])]
+    best_image = cv2.imread(museum_image)
+    best_image = cv2.resize(best_image, (denoised_image.shape[1], denoised_image.shape[0]))
+
     # Compute PSNR
-    MSE = np.mean((image - denoised_image) ** 2)
+    MSE = np.mean((best_image - denoised_image) ** 2)
     if MSE == 0:
         PSNR_image = 100
     else:

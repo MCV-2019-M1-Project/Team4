@@ -45,7 +45,7 @@ def bounding_boxes_detection(path, method):
         """
         if (method == 1):
 
-            saturation_threshold = 5
+            saturation_threshold = 20
 
             # Color image segmentation to create binary image (255 white: high possibility of text; 0 black: no text)
             im_hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
@@ -57,9 +57,8 @@ def bounding_boxes_detection(path, method):
             image_grey[image_grey != 255] = 0
 
             # Cleaning image using morphological opening filter
-            opening_kernel = np.ones((15, 10),np.uint8)
+            opening_kernel = np.ones((5, 5),np.uint8)/9
             text_mask = cv2.morphologyEx(image_grey, cv2.MORPH_OPEN, opening_kernel, iterations=1)
-
         
         #----------------------------------   METHOD 2   ----------------------------------------------------------
         """
@@ -67,13 +66,13 @@ def bounding_boxes_detection(path, method):
         """
 
         if (method == 2):
-
-            # Define grayscale image
+    
+            # Define grayscale image 
             im_yuv = cv2.cvtColor(image, cv2.COLOR_BGR2YUV)
             im_y, _, _ = cv2.split(im_yuv)
             
             # Define kernel sizes
-            kernel = np.ones((5, 5), np.float32)/9
+            kernel = np.ones((3, 3), np.float32)/9
 
             # Difference between erosion and dilation images 
             y_dilation = cv2.morphologyEx(im_y, cv2.MORPH_DILATE, kernel, iterations = 1)
@@ -138,7 +137,7 @@ def bounding_boxes_detection(path, method):
             box = [[x_box_2, y_box_2, x_box_2 + w_box_2, y_box_2 + h_box_2], [x_box_1, y_box_1, x_box_1 + w_box_1, y_box_1 + h_box_1]]
             boxes.append(box)
         
-        # cv2.imwrite(str(idx) + '.png', image)
+        # cv2.imwrite('text/text_masks/' + str(idx) + '.png', text_mask)
 
         idx += 1
 

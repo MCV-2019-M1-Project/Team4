@@ -1,18 +1,18 @@
 """
 Usage:
-  main.py <colorBase> <dimension> <query_set_path> <metric> <k> <background_removal> <text_removal> <text_removal_method>
+  main.py <query_set_path> <background_removal> <text_removal> <text_removal_method> <k> 
 Options:
 """
 
 # VSCode imports
-# from evaluation import *
-# from mask import *
-# from texture_descriptors import *
+from evaluation import *
+from mask import *
+from texture_descriptors import *
 
 # PyCharm Imports
-from week3.evaluation import *
-from week3.mask import *
-from week3.texture_descriptors import *
+# from week3.evaluation import *
+# from week3.mask import *
+# from week3.texture_descriptors import *
 
 import sys
 import glob
@@ -121,7 +121,7 @@ if __name__ == '__main__':
         idx = 0
         PSNR = []  # Peak signal to Noise Ratio
         for query_noise_image in query_noise_filenames:
-            PSNR = remove_noise(query_set_path, query_noise_image, idx, PSNR)
+            PSNR = remove_noise(test_set_path, query_set_path, query_noise_image, GT, idx, PSNR)
             idx += 1
 
         query_set_path = query_set_path + '_denoised/'
