@@ -5,44 +5,61 @@ Options:
 """
 
 # VSCode imports
-from evaluation import *
-from mask import *
+# from evaluation import *
+# from mask import *
+# from texture_descriptors import *
 
 # PyCharm Imports
-# from week2.evaluation import *
-# from week2.mask import *
+from week3.evaluation import *
+from week3.mask import *
+from week3.texture_descriptors import *
 
 import sys
 import glob
 import numpy as np
 import cv2
 
+
 if __name__ == '__main__':
 
     # read args
     print("Reading Arguments")
-    color_base = sys.argv[1]
-    dimension = sys.argv[2]
-    query_set_path = 'images/' + sys.argv[3]
+    query_set_path = 'images/' + sys.argv[1]
     test_set_path = 'images/bbdd/'
     masks_path = 'masks/'
-    metric = sys.argv[4]
+    background_removal = sys.argv[2]
+    text_removal = sys.argv[3]
+    text_method = int(sys.argv[4])
     k = int(sys.argv[5])
-    background_removal = sys.argv[6]
-    text_removal = sys.argv[7]
-    text_method = int(sys.argv[8])
 
-    # IMPORTANT PARAMETERS
+    # GT and results parameters
     save_to_pickle = False
     save_to_pickle_text = False
     ground_truth_available = True
     ground_truth_text_available = True
-    if query_set_path == "qsd2_w2":
+
+    # Denoise parameters
+    denoise = False
+
+    # Texture parameters
+    texture_descriptors = True
+    texture_descriptor_level = 3
+    texture_method = "LBP"
+
+    # Histogram parameters
+    histogram_descriptors = True
+    color_base = "YCrCb"
+    dimension = '2D'
+    metric = "euclidean_distance"
+    level = 3
+
+    # Text parameters
+    text_descriptors = False
+
+    if query_set_path == "qsd2_w2" or query_set_path == "qsd2_w3":
         multiple_subimages = True
     else:
         multiple_subimages = False
-    level = 3
-    texture_descriptor_level = 2
 
     # Get Ground Truth
     if ground_truth_available:
@@ -51,43 +68,80 @@ if __name__ == '__main__':
 
     if ground_truth_text_available:
         print("Loading Text Ground Truth")
-        GT_text = get_ground_truth(query_set_path + '/' +  'text_boxes.pkl')
+        GT_text = get_ground_truth(query_set_path + '/' + 'text_boxes.pkl')
 
     # Get museum images filenames
     print("Getting Museum Images")
     museum_filenames = glob.glob(test_set_path + '*.jpg')
     museum_filenames.sort()
+    number_museum_elements = len(museum_filenames)
 
     # Get Museum Histograms
     print("Getting Museum Histograms")
-    museum_histograms = {}
+
+    # Check the data structures needed to store the features
+    if histogram_descriptors:
+        museum_histograms = {}
+    else:
+        museum_histograms = None
+    if texture_descriptors:
+        museum_textures = {}
+    else:
+        museum_textures = None
+    if text_descriptors:
+        museum_ocrs = {}
+    else:
+        museum_ocrs = None
+
     idx = 0
     for museum_image in museum_filenames:
-        print("Getting Histogram for Museum Image " + str(idx))
-        museum_histograms[idx] = calculate_image_histogram(museum_image, None, color_base, dimension, level, None, None)
+        print("Getting Features for Museum Image " + str(idx))
+
+        # Get histogram for museum image
+        if histogram_descriptors:
+            museum_histograms[idx] = calculate_image_histogram(museum_image, None, color_base, dimension, level, None,
+                                                               None)
+
+        # Get texture descriptor for museum image
+        if texture_descriptors:
+            museum_textures[idx] = get_image_texture_descriptor(museum_image, texture_method, texture_descriptor_level,
+                                                                None)
+
+        # Get text descriptor for museum image
+        if text_descriptors:
+            """TODO"""
+            pass
+
         idx += 1
 
     # Remove noise from query set images and save the denoised images in a new folder used for the pipeline
-    query_noise_filenames = glob.glob(query_set_path + '/' + '*.jpg')
-    query_noise_filenames.sort()
-    idx = 0
-    PSNR = []  # Peak signal to Noise Ratio
-    for query_noise_image in query_noise_filenames:
-        PSNR = remove_noise(query_set_path, query_noise_image, idx, PSNR)
-        idx += 1
+    if denoise:
+        query_noise_filenames = glob.glob(query_set_path + '/' + '*.jpg')
+        query_noise_filenames.sort()
+        idx = 0
+        PSNR = []  # Peak signal to Noise Ratio
+        for query_noise_image in query_noise_filenames:
+            PSNR = remove_noise(query_set_path, query_noise_image, idx, PSNR)
+            idx += 1
 
-    query_set_denoised_path = query_set_path + '_denoised/'
-    print("Minimum Peak Signal to Noise Ratio: " + str(np.min(PSNR)))
+        query_set_path = query_set_path + '_denoised/'
+        print("Minimum Peak Signal to Noise Ratio: " + str(np.min(PSNR)))
 
-    # Get query images filenames
-    print("Getting Query Image")
-    query_filenames = glob.glob(query_set_denoised_path + '*.jpg')
-    query_filenames.sort()
+        # Get query images filenames
+        print("Getting Query Image")
+        query_filenames = glob.glob(query_set_path + '*.jpg')
+        query_filenames.sort()
+    else:
+        # Get query images filenames
+        print("Getting Query Image")
+        query_set_path = query_set_path + '/'
+        query_filenames = glob.glob(query_set_path + '*.jpg')
+        query_filenames.sort()
 
     # Detect bounding boxes for text (result_text) and compute IoU parameter
     if text_removal == "True":
         print("Detecting text in the image")
-        result_text = detect_bounding_boxes(query_set_denoised_path, text_method)
+        result_text = detect_bounding_boxes(query_set_path, text_method)
 
         # Check if the text results need to be saved in a pickle file
         if save_to_pickle_text:
@@ -103,22 +157,46 @@ if __name__ == '__main__':
     print("Getting Query Histograms")
     idx = 0
     masks = {}
-    query_histograms = {}
+    number_query_elements = len(query_filenames)
+
+    # Check the data structures needed to store the features
+    if histogram_descriptors:
+        query_histograms = {}
+    else:
+        query_histograms = None
+    if texture_descriptors:
+        query_textures = {}
+    else:
+        query_textures = None
+    if text_descriptors:
+        query_ocrs = {}
+    else:
+        query_ocrs = None
 
     if text_removal == "True" and multiple_subimages:
         number_subimages = {}
-        query_histograms_counter = 0
+        query_features_counter = 0
 
     for query_image in query_filenames:
-        print("Getting Histogram for Query Image " + str(idx))
+        print("Getting Features for Query Image " + str(idx))
         if text_removal == "True" and not multiple_subimages:
-
-            # Get histograms for each one of the images in the query filenames
             masks[idx] = get_mask(query_image, masks_path, idx)
             text_mask = masks[idx]
             text_mask[result_text[idx][0][1]:result_text[idx][0][3], result_text[idx][0][0]:result_text[idx][0][2]] = 0
-            query_histograms[idx] = calculate_image_histogram(query_image, text_mask, color_base, dimension, level,
-                                                              None, None)
+
+            # Get histogram for the query image
+            if histogram_descriptors:
+                query_histograms[idx] = calculate_image_histogram(query_image, text_mask, color_base, dimension, level,
+                                                                   None, None)
+
+            # Get texture descriptor for the query image
+            if texture_descriptors:
+                query_textures[idx] = get_image_texture_descriptor(query_image, texture_method, texture_descriptor_level,
+                                                                   text_mask)
+
+            if text_descriptors:
+                """TODO"""
+                pass
 
         elif text_removal == "True" and multiple_subimages:
 
@@ -126,43 +204,92 @@ if __name__ == '__main__':
             masks[idx] = get_mask(query_image, masks_path, idx)
             text_mask = masks[idx]
             for result_index in range(0, len(result_text[idx])):
-                text_mask[result_text[idx][result_index][1]:result_text[idx][result_index][3],result_text[idx][result_index][0]:result_text[idx][result_index][2]] = 0
+                text_mask[result_text[idx][result_index][1]:result_text[idx][result_index][3], result_text[idx][result_index][0]:result_text[idx][result_index][2]] = 0
 
             output = paintings_detection(query_image, masks[idx])
             if output > 0:
                 number_subimages[idx] = 2
-                query_histograms[idx] = calculate_image_histogram(query_image, text_mask, color_base, dimension, level, None,
-                                                                  None)
-                query_histograms_counter += 1
-                query_histograms[idx] = calculate_image_histogram(query_image, text_mask, color_base, dimension, level, None,
-                                                                  None)
-                query_histograms_counter += 1
+                if histogram_descriptors:
+                    query_histograms[query_features_counter] = calculate_image_histogram(query_image, text_mask,
+                                                                                             color_base, dimension,
+                                                                                             level, None, None)
+                    query_features_counter += 1
+                    query_histograms[query_features_counter] = calculate_image_histogram(query_image, text_mask,
+                                                                                             color_base, dimension,
+                                                                                             level, None, None)
+                    query_features_counter += 1
+
+                if texture_descriptors:
+                    query_textures[query_features_counter] = get_image_texture_descriptor(query_image, texture_method,
+                                                                                          texture_descriptors, text_mask)
+                    query_features_counter += 1
+
+                    query_textures[query_features_counter] = get_image_texture_descriptor(query_image, texture_method,
+                                                                                          texture_descriptors, text_mask)
+                    query_features_counter += 1
+
+                    if text_descriptors:
+                        """TODO"""
+                        pass
             else:
                 number_subimages[idx] = 1
-                query_histograms[idx] = calculate_image_histogram(query_image, None, color_base, dimension, level, None,
-                                                                  None)
-                query_histograms_counter += 1
+                if histogram_descriptors:
+                    query_histograms[query_features_counter] = calculate_image_histogram(query_image, None, color_base, dimension, level, None,
+                                                                                         None)
+                    query_features_counter += 1
+
+                if texture_descriptors:
+                    query_textures[idx] = get_image_texture_descriptor(query_image, texture_method,
+                                                                       texture_descriptor_level, None)
+                    query_features_counter += 1
+
+                if text_descriptors:
+                    """TODO"""
+                    pass
 
         elif background_removal == "True":
             masks[idx] = get_mask(query_image, masks_path, idx)
             # Detects if there is more than one painting (0 if there is only one painting)
             x_pixel_to_split = paintings_detection(query_image, masks[idx])
             if x_pixel_to_split == 0:  # Only one painting
-                query_histograms[idx] = calculate_image_histogram(query_image, masks[idx], color_base, dimension, level,
-                                                                  None, None)
+                if histogram_descriptors:
+                    query_histograms[idx] = calculate_image_histogram(query_image, masks[idx], color_base, dimension,
+                                                                      level, None, None)
+
+                if texture_descriptors:
+                    query_textures[idx] = get_image_texture_descriptor(query_image, texture_method,
+                                                                       texture_descriptor_level, masks[idx])
+
+                if text_descriptors:
+                    """TODO"""
+                    pass
         else:
-            query_histograms[idx] = calculate_image_histogram(query_image, None, color_base, dimension, level, None,
-                                                              None)
+            if histogram_descriptors:
+                query_histograms[idx] = calculate_image_histogram(query_image, None, color_base, dimension, level, None,
+                                                                  None)
+
+            if texture_descriptors:
+                query_textures[idx] = get_image_texture_descriptor(query_image, texture_method,
+                                                                   texture_descriptor_level, None)
+
+            if text_descriptors:
+                """TODO"""
+                pass
+
         idx += 1
 
-    # Compute similarities to museum images for each image in the Query Set 1 and 2
+    # Compute similarities to museum images for each image
     if multiple_subimages:
         print("Getting Similarities for Query Set2 and Museum")
-        predictions = calculate_similarities(color_base, metric, dimension, query_histograms, museum_histograms)
+        predictions = calculate_similarities(color_base, metric, dimension, query_histograms, query_textures,
+                                             query_ocrs, museum_histograms, museum_textures, museum_ocrs,
+                                             number_query_elements, number_museum_elements)
         top_k = get_top_k(predictions, k, number_subimages)
     else:
         print("Getting Predictions")
-        predictions = calculate_similarities(color_base, metric, dimension, query_histograms, museum_histograms)
+        predictions = calculate_similarities(color_base, metric, dimension, query_histograms, query_textures,
+                                             query_ocrs, museum_histograms, museum_textures, museum_ocrs,
+                                             number_query_elements, number_museum_elements)
         top_k = get_top_k(predictions, k, None)
 
     if ground_truth_available:

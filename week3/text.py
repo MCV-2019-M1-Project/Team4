@@ -67,8 +67,8 @@ def bounding_boxes_detection(path, method):
         """
 
         if (method == 2):
-    
-            # Define grayscale image 
+
+            # Define grayscale image
             im_yuv = cv2.cvtColor(image, cv2.COLOR_BGR2YUV)
             im_y, _, _ = cv2.split(im_yuv)
             

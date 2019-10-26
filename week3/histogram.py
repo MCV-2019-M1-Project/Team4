@@ -13,7 +13,6 @@ def calculate_1d_histogram_grayscale(image, mask):
 
     hist = cv2.calcHist([cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)], [0], mask, [32], [0, 256])
     cv2.normalize(hist, hist)
-    print(hist)
 
     return hist
 
@@ -177,9 +176,8 @@ def get_image_histogram(image, mask, color_base, dimension, level, x_pixel_to_sp
     elif level == 2 or level == 3:
         histogram = []
 
-        for level in range(1, level + 1):
-            number_of_blocks = 2**level
-            histogram.extend(get_level_histograms(image, mask, color_base, dimension, number_of_blocks))
+        number_of_blocks = 2**(level - 1)
+        histogram.extend(get_level_histograms(image, mask, color_base, dimension, number_of_blocks))
 
         return histogram
     else:

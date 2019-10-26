@@ -63,35 +63,52 @@ def calculate_hist_distance(color_base, metric, dimension, hist_a, hist_b):
     return distance
 
 
-def calculate_similarities(color_base, metric, dimension, QS_Histograms, DB_Histograms):
+def calculate_similarities(color_base, metric, dimension, query_hists, query_textures, query_ocrs, museum_hists,
+                           museum_textures, museum_ocrs, num_query_elements, num_museum_elements):
     """
     This function calculates the similarity between each image of the query set with all the museum database images,
     and then sorts out the museum images by distance in ascending order.
 
+    :param num_museum_elements:
+    :param num_query_elements:
     :param color_base: string indicating the color base in which the histogram needs to be calculated
     :param metric: string indicating which metric to use to calculate the distance
-    :param QS_Histograms: Dict containing the histograms of each of the images from the query set
-    :param DB_Histograms: Dict containing the histograms of each of the images from the museum database
+    :param dimension:
+    :param query_hists: Dict containing the histograms of each of the images from the query set
+    :param query_textures:
+    :param query_ocrs:
+    :param museum_hists: Dict containing the histograms of each of the images from the museum database
+    :param museum_textures:
+    :param museum_ocrs:
     :return:
     """
+
     predictions = []
 
-    idx_query = 0
-    for query_hist in QS_Histograms.values():
+    for idx_query in range(num_query_elements):
         query_element_distances_list = []
-        idx_museum = 0
         print("Calculating similarities for Query Image " + str(idx_query))
-        for museum_hist in DB_Histograms.values():
-            distance = calculate_hist_distance(color_base, metric, dimension, query_hist, museum_hist)
+        for idx_museum in range(num_museum_elements):
+            distance = 0.0
+            if query_hists is not None:
+                distance += calculate_hist_distance(color_base, metric, dimension, query_hists[idx_query],
+                                                    museum_hists[idx_museum])
+
+            if query_textures is not None:
+                distance += calculate_hist_distance(None, 'euclidean_distance', None, query_textures[idx_query],
+                                                    museum_textures[idx_museum])
+
+            if query_ocrs is not None:
+                distance += calculate_hist_distance(None, 'euclidean_distance', None, query_ocrs[idx_query],
+                                                    museum_ocrs[idx_museum])
+
             query_element_distances_list.append([idx_museum, distance])
-            idx_museum += 1
-        idx_query += 1
 
         # Sort the values and remove the distances
         query_element_distances_list.sort(key=lambda x: x[1])
         aux_list = []
         for pair in query_element_distances_list:
-            del(pair[1])
+            del (pair[1])
             aux_list.append(pair[0])
 
         predictions.append(aux_list)
@@ -113,6 +130,7 @@ def calculate_image_histogram(image, image_mask, color_base, dimension, level, x
     :param side: indicates the side to split the image and mask if there are more than one painting
     :return: Array or matrix containing the resulting histogram
     """
+
     return get_image_histogram(image, image_mask, color_base, dimension, level, x_pixel_to_split, side)
 
 
@@ -131,7 +149,7 @@ def get_top_k(predictions, k, number_subimages_dic):
     if number_subimages_dic is None:
         for element in predictions:
             del(element[k:])
-            predictions_to_return.append(element)
+            predictions_to_return.append(element[0])
     else:
         predictions_idx = 0
         for idx, number_subimages in number_subimages_dic.items():
