@@ -86,7 +86,6 @@ def calculate_text_distance(str_1, str_2, method):
         raise Exception("Wrong distance method")
 
 
-
 def calculate_similarities(color_base, metric, dimension, query_hists, query_textures, query_ocrs, museum_hists,
                            museum_textures, museum_ocrs, num_query_elements, num_museum_elements):
     """
@@ -108,6 +107,8 @@ def calculate_similarities(color_base, metric, dimension, query_hists, query_tex
     """
 
     predictions = []
+    print(query_ocrs)
+    print(museum_ocrs)
 
     for idx_query in range(num_query_elements):
         query_element_distances_list = []
@@ -123,7 +124,8 @@ def calculate_similarities(color_base, metric, dimension, query_hists, query_tex
                                                     museum_textures[idx_museum])
 
             if query_ocrs is not None:
-                distance += calculate_text_distance(query_ocrs[idx_query], museum_ocrs[idx_museum], 'hamming')
+                distance += (1 - calculate_text_distance(query_ocrs[idx_query], museum_ocrs[idx_museum], 'levenshtein'))
+                print(distance)
 
             query_element_distances_list.append([idx_museum, distance])
 
