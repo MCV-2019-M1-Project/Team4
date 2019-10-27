@@ -82,8 +82,6 @@ if __name__ == '__main__':
     museum_filenames = glob.glob(test_set_path + '*.jpg')
     museum_filenames.sort()
     number_museum_elements = len(museum_filenames)
-    museum_text_gt_filenames = glob.glob('text/bbdd_text/*.txt')
-    museum_text_gt_filenames.sort()
 
     # Get Museum Histograms
     print("Getting Museum Histograms")
@@ -100,6 +98,8 @@ if __name__ == '__main__':
     if text_descriptors:
         museum_ocrs = {}
         museum_text_gt = {}
+        museum_text_gt_filenames = glob.glob('text/bbdd_text/*.txt')
+        museum_text_gt_filenames.sort()
     else:
         museum_ocrs = None
 
@@ -119,12 +119,12 @@ if __name__ == '__main__':
 
         # Get text descriptor for museum image.
         if text_descriptors:
-            """TODO"""
+
 
             # Read GT for BBDD text_files
             file = open(museum_text_gt_filenames[idx], 'r')
-            with open(museum_text_gt_filenames[idx], 'r') as ff:
-                line = ff.readline()
+            with open(museum_text_gt_filenames[idx], 'r') as file:
+                line = file.readline()
                 if not line:
                     museum_text_gt[idx] = line
                 else:

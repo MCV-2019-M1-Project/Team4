@@ -4,6 +4,7 @@ from distances_metrics import *
 from histogram import *
 from mask import *
 from text import *
+from compute_text_distances import *
 import glob
 import ml_metrics as metrics
 import numpy as np
@@ -66,6 +67,26 @@ def calculate_hist_distance(color_base, metric, dimension, hist_a, hist_b):
     return distance
 
 
+def calculate_text_distance(str_1, str_2, method):
+    """
+
+    :param str_1:
+    :param str_2:
+    :param method:
+    :return:
+    """
+
+    if method == 'levenshtein':
+        return levenshtein_distance(str_1, str_2)
+    elif method == 'hamming':
+        return hamming_distance(str_1, str_2)
+    elif method == 'jaro_winkler':
+        return jaro_winkler_distance(str_1, str_2)
+    else:
+        raise Exception("Wrong distance method")
+
+
+
 def calculate_similarities(color_base, metric, dimension, query_hists, query_textures, query_ocrs, museum_hists,
                            museum_textures, museum_ocrs, num_query_elements, num_museum_elements):
     """
@@ -102,8 +123,7 @@ def calculate_similarities(color_base, metric, dimension, query_hists, query_tex
                                                     museum_textures[idx_museum])
 
             if query_ocrs is not None:
-                distance += calculate_hist_distance(None, 'euclidean_distance', None, query_ocrs[idx_query],
-                                                    museum_ocrs[idx_museum])
+                distance += calculate_text_distance(query_ocrs[idx_query], museum_ocrs[idx_museum], 'hamming')
 
             query_element_distances_list.append([idx_museum, distance])
 
@@ -269,7 +289,7 @@ def remove_noise(test_set_path, query_path, query_image, GT, idx, PSNR):
     maximum = cv2.dilate(image, np.ones((kernel,kernel), np.uint8) / kernel**2, iterations = 1)
     median = cv2.medianBlur(image, kernel)
     
-    while (kernel <= kernel_max):
+    while kernel <= kernel_max:
         kernel += 2
 
         minimum = cv2.erode(denoised_image, np.ones((kernel,kernel), np.uint8) / kernel**2, iterations = 1)
@@ -307,4 +327,3 @@ def remove_noise(test_set_path, query_path, query_image, GT, idx, PSNR):
     PSNR.append(PSNR_image)
 
     return PSNR
-    

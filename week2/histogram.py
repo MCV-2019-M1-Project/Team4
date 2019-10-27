@@ -59,6 +59,7 @@ def calculate_2d_histogram(image, mask, color_base):
     :param mask: mask to apply to the image. If mask == None, no mask is applied
     :param color_base: String that indicates in which color base the histogram has to be calculated
     """
+    print("HOL")
     if color_base == 'HSV':
         image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
         range_hist = [0, 180, 0, 256]
@@ -74,7 +75,7 @@ def calculate_2d_histogram(image, mask, color_base):
     else:
         raise Exception("Color Base Not Valid")
 
-    hist = cv2.calcHist([image], channels, mask, [128, 128], range_hist)
+    hist = cv2.calcHist([image], channels, mask, [16, 16], range_hist)
     cv2.normalize(hist, hist)
 
     return hist.flatten()
@@ -117,6 +118,8 @@ def get_level_histograms(image, mask, color_base, dimension, num_blocks):
     height, width = image.shape[:2]
     height_block = int(np.ceil(height / num_blocks))  # Number of height pixels for sub-image
     width_block = int(np.ceil(width / num_blocks))    # Number of width pixels for sub-image
+    print(color_base)
+    print(num_blocks)
 
     for i in range(0, height, height_block):
         for j in range(0, width, width_block):
@@ -174,10 +177,10 @@ def get_image_histogram(image, mask, color_base, dimension, level, x_pixel_to_sp
             return calculate_3d_histogram(image, mask, color_base)
     elif level == 2 or level == 3:
         histogram = []
+        print("SDGO")
 
-        for level in range(level + 1):
-            number_of_blocks = 2**level
-            histogram.extend(get_level_histograms(image, mask, color_base, dimension, number_of_blocks))
+        number_of_blocks = 2**(level - 1)
+        histogram.extend(get_level_histograms(image, mask, color_base, dimension, number_of_blocks))
 
         return histogram
     else:

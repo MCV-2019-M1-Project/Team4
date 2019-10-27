@@ -8,15 +8,15 @@ from PIL import Image, ImageEnhance, ImageFilter
 
 
 def extract_text(cropped_image_path):
-   
-    '''This function applies the OCR to get the text from paintings'''
+
+    """This function applies the OCR to get the text from paintings"""
 
     return pytesseract.image_to_string(Image.open(cropped_image_path))
 
 
 def get_text(img_path, mask_text_path, method):
-   
-    ''' This function returns the detected text after recognition '''
+
+    """ This function returns the detected text after recognition """
   
     print("Detecting textbox of images")
     

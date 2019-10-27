@@ -1,5 +1,6 @@
 import textdistance
 
+
 def levenshtein_distance(str_1, str_2):
     """
         The Levenshtein distance is a string metric for measuring the difference between two sequences.
@@ -15,9 +16,10 @@ def hamming_distance(str_1, str_2):
     """
     return textdistance.hamming.normalized_similarity(str_1, str_2)
 
+
 def jaro_winkler_distance(str_1, str_2):
     """
-        The Levenshtein distance is a string metric for measuring the difference between two sequences.
+        The Jaro Winkler distance is a string metric for measuring the difference between two sequences.
         This algorithms gives high scores to two strings if, (1) they contain same characters, but within a certain distance from one another, and (2) the order of the matching characters is same.
     """
     return textdistance.jaro_winkler(str_1, str_2)

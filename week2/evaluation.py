@@ -86,7 +86,7 @@ def calculate_similarities(color_base, metric, dimension, QS_Histograms, DB_Hist
             query_element_distances_list.append([idx_museum, distance])
             idx_museum += 1
         idx_query += 1
-
+        print(query_element_distances_list)
         # Sort the values and remove the distances
         query_element_distances_list.sort(key=lambda x: x[1])
         aux_list = []
