@@ -5,18 +5,18 @@ Options:
 """
 
 # VSCode imports
-from evaluation import *
-from mask import *
-from texture_descriptors import *
-
-# Week3 imports
-from text_ocr import *
-from compute_text_distances import * 
+#from evaluation import *
+#from mask import *
+#from texture_descriptors import *
+#from text_ocr import *
+#from compute_text_distances import *
 
 # PyCharm Imports
-# from week3.evaluation import *
-# from week3.mask import *
-# from week3.texture_descriptors import *
+from week3.evaluation import *
+from week3.mask import *
+from week3.texture_descriptors import *
+from week3.text_ocr import *
+from week3.compute_text_distances import *
 
 import sys
 import glob
@@ -82,6 +82,8 @@ if __name__ == '__main__':
     museum_filenames = glob.glob(test_set_path + '*.jpg')
     museum_filenames.sort()
     number_museum_elements = len(museum_filenames)
+    museum_text_gt_filenames = glob.glob('text/bbdd_text/*.txt')
+    museum_text_gt_filenames.sort()
 
     # Get Museum Histograms
     print("Getting Museum Histograms")
@@ -118,7 +120,16 @@ if __name__ == '__main__':
         # Get text descriptor for museum image.
         if text_descriptors:
             """TODO"""
-            #museum_text_gt[idx] = READ TXT FILES ONE BY ONE FROM TEXT/BBDD FOLDER
+
+            # Read GT for BBDD text_files
+            file = open(museum_text_gt_filenames[idx], 'r')
+            with open(museum_text_gt_filenames[idx], 'r') as ff:
+                line = ff.readline()
+                if not line:
+                    museum_text_gt[idx] = line
+                else:
+                    line = line.split(',')
+                    museum_text_gt[idx] = line[0][2:-1]
 
         idx += 1
 

@@ -91,7 +91,7 @@ def HOG_descriptor(image, mask):
     :param mask: binary mask that will be applied to the image
     :return: array with the image features
     """
-    grayscale = True
+    grayscale = False
     multichannel = True
 
     resized_image = cv2.resize(image, (512, 512), interpolation=cv2.INTER_AREA)
