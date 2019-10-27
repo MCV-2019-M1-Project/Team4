@@ -6,7 +6,7 @@ import glob
 import os
 
 
-def bounding_boxes_detection(path, method):
+def bounding_boxes_detection(path, mask_set_path, method):
     """
     This function detects the bounding boxes of the text in all the images of a specific folder
 
@@ -137,11 +137,11 @@ def bounding_boxes_detection(path, method):
             box = [[x_box_2, y_box_2, x_box_2 + w_box_2, y_box_2 + h_box_2], [x_box_1, y_box_1, x_box_1 + w_box_1, y_box_1 + h_box_1]]
             boxes.append(box)
         
-        # cv2.imwrite('text/text_masks/' + str(idx) + '.png', text_mask)
+        cv2.imwrite(mask_set_path + str(idx) + '.png', text_mask)
 
         idx += 1
 
-    return text_mask, boxes
+    return boxes
 
 def bounding_boxes_evaluation(boxA, boxB):
     """

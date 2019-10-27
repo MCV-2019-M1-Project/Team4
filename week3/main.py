@@ -36,6 +36,7 @@ if __name__ == '__main__':
     text_method = int(sys.argv[4])
     k = int(sys.argv[5])
     mask_gt_path = query_set_path
+    mask_text_path = 'text/text_masks/'
 
     # GT and results parameters
     save_to_pickle = False
@@ -48,19 +49,19 @@ if __name__ == '__main__':
     use_denoised_images = True
 
     # Texture parameters
-    texture_descriptors = True
+    texture_descriptors = False
     texture_descriptor_level = 3
     texture_method = "LBP"
 
     # Histogram parameters
-    histogram_descriptors = True
+    histogram_descriptors = False
     color_base = "LAB"
     dimension = '2D'
     metric = "bhattacharya_distance"
     level = 3
 
     # Text parameters
-    text_descriptors = False
+    text_descriptors = True
 
     if query_set_path == "qsd2_w2" or query_set_path == "qsd2_w3":
         multiple_subimages = True
@@ -114,13 +115,10 @@ if __name__ == '__main__':
             museum_textures[idx] = get_image_texture_descriptor(museum_image, texture_method, texture_descriptor_level,
                                                                 None)
 
-        # Get text descriptor for museum image
+        # Get text descriptor for museum image.
         if text_descriptors:
             """TODO"""
-            museum_ocrs[idx] = get_text(museum_image, text_method)
-            with open(museum_image,'r') as fp:
-                gt_text = fp.read().spiltlines()
-            museum_text_gt[idx] = gt_text
+            #museum_text_gt[idx] = READ TXT FILES ONE BY ONE FROM TEXT/BBDD FOLDER
 
         idx += 1
 
@@ -152,7 +150,7 @@ if __name__ == '__main__':
     # Detect bounding boxes for text (result_text) and compute IoU parameter
     if text_removal == "True":
         print("Detecting text in the image")
-        text_mask, result_text = detect_bounding_boxes(query_set_path, text_method)
+        result_text = detect_bounding_boxes(query_set_path, mask_text_path, text_method)
 
         # Check if the text results need to be saved in a pickle file
         if save_to_pickle_text:
@@ -189,6 +187,15 @@ if __name__ == '__main__':
         number_subimages = {}
         query_features_counter = 0
 
+    if text_descriptors:
+        """TODO"""
+        query_text_gt = get_text(query_set_path, mask_text_path, text_method)
+
+        # Calculate distances from query_text_gt and museum_text_gt
+        for q_o in query_text_gt:
+            for g_t in museum_text_gt:
+                dist = levenshtein_distance(q_o, g_t)
+
     for query_image in query_filenames:
         print("Getting Features for Query Image " + str(idx))
         if text_removal == "True" and not multiple_subimages:
@@ -206,16 +213,6 @@ if __name__ == '__main__':
                 query_textures[idx] = get_image_texture_descriptor(query_image, texture_method, texture_descriptor_level,
                                                                    text_mask)
 
-            if text_descriptors:
-                """TODO"""
-                query_ocrs[idx] = get_text(query_image, text_method)
-            with open(query_image.replace('.jpg', '.txt'),'r') as fp:
-                gt_text = fp.read().spiltlines()
-            query_text_gt[idx] = gt_text
-            for q_o in query_ocrs[idx]:
-                for g_t in gt_text:
-                    dist = levenshtein_distance(q_o, g_t)
-                    print(dist)
 
         elif text_removal == "True" and multiple_subimages:
 

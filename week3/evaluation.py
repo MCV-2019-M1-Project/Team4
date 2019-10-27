@@ -204,7 +204,7 @@ def evaluate_mask(annotation_mask, result_mask):
     return mask_evaluation(annotation_mask, result_mask)
 
 
-def detect_bounding_boxes(path, method):
+def detect_bounding_boxes(path, mask_set_path, method):
     """
     This function detects the bounding boxes of the text in all the images of a specific folder
 
@@ -219,7 +219,7 @@ def detect_bounding_boxes(path, method):
         [lowest_pixel_x, lowest_pixel_y, highest_pixel_x, highest_pixel_y] 
     """
 
-    return bounding_boxes_detection(path, method)
+    return bounding_boxes_detection(path, mask_set_path, method)
 
 
 def evaluate_text(GT_bounding_boxes, result_bounding_boxes):
