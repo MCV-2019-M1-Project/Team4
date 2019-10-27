@@ -6,12 +6,13 @@ Members: Sergio Casas Pastor, Sanket Biswas, Josep Brugués i Pujolràs
 
 The tasks for the second week include:
 
-* Create 2D/3D blocks and multiresolution histograms image descriptors
-* Test system using new histograms and query set from last week QS2-W1
-* Detect and remove text from images
-* Evaluate text detection using bounding boxes and IoU parameter
-* Evaluate the retrieval system for QS1-W2 removing the text region
-* Evaluate the retrieval system for QS2-W2 which contains more than one painting per image, removing background and text regions
+* Filter noise with linear or non-linear filters.
+* On denoised images, detect box with overlapping text, and apply OCR to get the text. Test query system using QSD1-W2 using only text.
+* Implement texture descriptors, and test them using QSD1-W2 using only texture descriptors.
+* Combine descriptors (text + color, text + texture, texture + color, text + color + texture) and test the retrieval on QSD1-W3.
+
+* Repeat the previous analysis with QSD2-W3 (remove noise, remove background, find 1 or 2 paintings and return the correspondences.
+
 
 Slides for Week 3 are available here: [Slides](https://drive.google.com/open?id=1HnHFoQNfw116Y6bx3lS0ndQQlz-D3-SC)
 
