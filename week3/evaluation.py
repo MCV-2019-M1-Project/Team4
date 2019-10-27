@@ -277,7 +277,7 @@ def detect_paintings(query_image, mask, idx):
     return paintings_detection(query_image, mask, idx)
 
     
-def remove_noise(test_set_path, query_path, query_image, GT, idx, PSNR):
+def remove_noise(test_set_path, query_path, query_image, evaluation, idx, PSNR):
 
     # Remove noise
 
@@ -314,20 +314,23 @@ def remove_noise(test_set_path, query_path, query_image, GT, idx, PSNR):
     cv2.imwrite(query_path + '_denoised/' + "{0:0=5d}".format(idx) + '.jpg', denoised_image)
 
     # Getting original image
-    museum_filenames = glob.glob(test_set_path + '*.jpg')
-    museum_filenames.sort()
-   
-    museum_image = museum_filenames[int(GT[idx][0])]
-    best_image = cv2.imread(museum_image)
-    best_image = cv2.resize(best_image, (denoised_image.shape[1], denoised_image.shape[0]))
+    if evaluation:
+        museum_filenames = glob.glob(test_set_path + '*.jpg')
+        museum_filenames.sort()
+    
+        museum_image = museum_filenames[int(GT[idx][0])]
+        best_image = cv2.imread(museum_image)
+        best_image = cv2.resize(best_image, (denoised_image.shape[1], denoised_image.shape[0]))
 
-    # Compute PSNR
-    MSE = np.mean((best_image - denoised_image) ** 2)
-    if MSE == 0:
-        PSNR_image = 100
+        # Compute PSNR
+        MSE = np.mean((best_image - denoised_image) ** 2)
+        if MSE == 0:
+            PSNR_image = 100
+        else:
+            PSNR_image = 10 * np.log10((255**2) / np.sqrt(MSE))
+
+        PSNR.append(PSNR_image)
+
+        return PSNR
     else:
-        PSNR_image = 10 * np.log10((255**2) / np.sqrt(MSE))
-
-    PSNR.append(PSNR_image)
-
-    return PSNR
+        return 0

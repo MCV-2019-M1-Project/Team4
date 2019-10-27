@@ -5,18 +5,18 @@ Options:
 """
 
 # VSCode imports
-#from evaluation import *
-#from mask import *
-#from texture_descriptors import *
-#from text_ocr import *
-#from compute_text_distances import *
+from evaluation import *
+from mask import *
+from texture_descriptors import *
+from text_ocr import *
+from compute_text_distances import *
 
 # PyCharm Imports
-from week3.evaluation import *
-from week3.mask import *
-from week3.texture_descriptors import *
-from week3.text_ocr import *
-from week3.compute_text_distances import *
+# from week3.evaluation import *
+# from week3.mask import *
+# from week3.texture_descriptors import *
+# from week3.text_ocr import *
+# from week3.compute_text_distances import *
 
 import sys
 import glob
@@ -41,12 +41,12 @@ if __name__ == '__main__':
     # GT and results parameters
     save_to_pickle = False
     save_to_pickle_text = False
-    ground_truth_available = True
-    ground_truth_text_available = True
-    ground_truth_ocr_available = True
+    ground_truth_available = False
+    ground_truth_text_available = False
+    ground_truth_ocr_available = False
 
     # Denoise parameters
-    execute_denoise_process = False
+    execute_denoise_process = True
     use_denoised_images = True
 
     # Texture parameters
@@ -62,7 +62,7 @@ if __name__ == '__main__':
     level = 3
 
     # Text parameters
-    text_descriptors = True
+    text_descriptors = False
 
     if query_set_path == "qsd2_w2" or query_set_path == "qsd2_w3":
         multiple_subimages = True
@@ -101,7 +101,7 @@ if __name__ == '__main__':
         museum_text_gt_filenames = glob.glob('text/bbdd_text/*.txt')
         museum_text_gt_filenames.sort()
     else:
-        museum_ocrs = None
+        museum_text_gt = None
 
     idx = 0
     for museum_image in museum_filenames:
@@ -115,7 +115,7 @@ if __name__ == '__main__':
         # Get texture descriptor for museum image
         if texture_descriptors:
             museum_textures[idx] = get_image_texture_descriptor(museum_image, texture_method, texture_descriptor_level,
-                                                                None)
+                                                                None, None, None)
 
         # Get text descriptor for museum image.
         if text_descriptors:
@@ -138,7 +138,7 @@ if __name__ == '__main__':
         idx = 0
         PSNR = []  # Peak signal to Noise Ratio
         for query_noise_image in query_noise_filenames:
-            PSNR = remove_noise(test_set_path, query_set_path, query_noise_image, GT, idx, PSNR)
+            PSNR = remove_noise(test_set_path, query_set_path, query_noise_image, ground_truth_available, idx, PSNR)
             idx += 1
 
         print("Minimum Peak Signal to Noise Ratio: " + str(np.min(PSNR)))
@@ -217,7 +217,7 @@ if __name__ == '__main__':
             # Get texture descriptor for the query image
             if texture_descriptors:
                 query_textures[idx] = get_image_texture_descriptor(query_image, texture_method, texture_descriptor_level,
-                                                                   text_mask)
+                                                                   text_mask, None, None)
 
         elif text_removal == "True" and multiple_subimages:
 
@@ -266,16 +266,14 @@ if __name__ == '__main__':
 
                 if texture_descriptors:
                     query_textures[query_features_counter] = get_image_texture_descriptor(query_image, texture_method,
-                                                                                         texture_descriptor_level, None)
+                                                                                         texture_descriptor_level, None, None, None)
                     query_features_counter += 1
 
                 if text_descriptors:
                     query_ocrs[query_features_counter] = get_text(query_image, 'text/text_masks/', text_method, idx,
                                                                   True)
                     query_features_counter += 1
-                    query_ocrs[query_features_counter] = get_text(query_image, 'text/text_masks/', text_method, idx,
-                                                                  True)
-                    query_features_counter += 1
+                    
 
         elif background_removal == "True":
             masks[idx] = get_mask(query_image, masks_path, idx)

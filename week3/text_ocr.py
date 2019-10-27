@@ -1,7 +1,7 @@
 import cv2
 from text import bounding_boxes_detection
 
-import pytesseract
+# import pytesseract
 from PIL import Image
 
 
