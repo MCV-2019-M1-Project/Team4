@@ -119,17 +119,20 @@ if __name__ == '__main__':
                                                                 None)
 
         # Get text descriptor for museum image.
-        if ground_truth_ocr_available:
+        if text_descriptors:
             museum_ocrs[idx] = get_text(museum_image, 'text/text_masks/', text_method, idx, None, None)
+            print(museum_ocrs[idx])
 
             # Read GT for BBDD text_files
-            with open(museum_text_gt_filenames[idx], 'r') as file:
-                line = file.readline()
-                if not line:
-                    museum_text_gt[idx] = line
-                else:
-                    line = line.split(',')
-                    museum_text_gt[idx] = line[0][2:-1]
+            if ground_truth_ocr_available:
+                with open(museum_text_gt_filenames[idx], 'r') as file:
+                    line = file.readline()
+                    if not line:
+                        museum_text_gt[idx] = line
+                    else:
+                        line = line.split(',')
+                        museum_text_gt[idx] = line[0][2:-1]
+
         idx += 1
 
     # Remove noise from query set images and save the denoised images in a new folder used for the pipeline
@@ -146,8 +149,8 @@ if __name__ == '__main__':
     
     # Use denoised images or not
     if use_denoised_images:
+        print("GAS")
         # Get query images filenames
-        print("Getting Query Image")
         query_set_path = query_set_path + '_denoised/'
         query_filenames = glob.glob(query_set_path + '*.jpg')
         query_filenames.sort()
@@ -164,7 +167,7 @@ if __name__ == '__main__':
         idx = 0
         for image in query_filenames:
             print("Getting text for query image " + str(idx))
-            result_text.append(detect_bounding_boxes(query_set_path, mask_text_path, text_method, False, idx))
+            result_text.extend(detect_bounding_boxes(image, mask_text_path, text_method, False, idx))
             idx += 1
 
         # Check if the text results need to be saved in a pickle file
@@ -178,10 +181,11 @@ if __name__ == '__main__':
             print("Intersection over Union: ", str(IoU))
 
     # Get query images histograms
-    print("Getting Query Histograms")
+    print("Getting Query Features")
     idx = 0
     masks = {}
     number_query_elements = len(query_filenames)
+    print(number_query_elements)
 
     # Check the data structures needed to store the features
     if histogram_descriptors:
@@ -202,15 +206,8 @@ if __name__ == '__main__':
         number_subimages = {}
         query_features_counter = 0
 
-    if text_descriptors:
-        """TODO"""
-        query_text_gt = get_text(query_set_path, mask_text_path, text_method)
 
-        # Calculate distances from query_text_gt and museum_text_gt
-        for q_o in query_text_gt:
-            for g_t in museum_text_gt:
-                dist = levenshtein_distance(q_o, g_t)
-
+    print(query_filenames)
     for query_image in query_filenames:
         print("Getting Features for Query Image " + str(idx))
         if text_removal == "True" and not multiple_subimages:

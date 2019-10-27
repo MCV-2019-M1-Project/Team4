@@ -1,23 +1,30 @@
-import os
 import cv2
 from text import bounding_boxes_detection
-import glob
 
 import pytesseract
-from PIL import Image, ImageEnhance, ImageFilter
+from PIL import Image
 
 
-def extract_text(cropped_image_path):
+def extract_text(cropped_image_path, idx, to_save):
     """
     This function applies the OCR to get the text from paintings
     :param cropped_image_path:
+    :param idx:
+    :param to_save:
     :return:
     """
 
-    return pytesseract.image_to_string(Image.open(cropped_image_path))
+    text = pytesseract.image_to_string(cropped_image_path)
+
+    if to_save:
+        with open('results/qst1/method1/text_' + str(idx) + '.txt', 'w+') as file:
+            file.writelines(text)
+            file.close()
+
+    return text
 
 
-def get_text(img_path, mask_text_path, method, idx, x_pixel_to_split, side):
+def get_text(img_path, mask_text_path, method, idx, x_pixel_to_split, side, save_text):
     """
     This function returns the detected text after recognition
     :param img_path:
@@ -26,6 +33,7 @@ def get_text(img_path, mask_text_path, method, idx, x_pixel_to_split, side):
     :param idx:
     :param x_pixel_to_split: indicates the x pixel to split the image and mask if there are more than one painting
     :param side: indicates the side to split the image and mask if there are more than one painting
+    :param save_text:
     :return:
     """
 
@@ -48,9 +56,9 @@ def get_text(img_path, mask_text_path, method, idx, x_pixel_to_split, side):
     text_img = cv2.bitwise_and(image, mask)
     # cropped_text = image[text_boxes[idx][0][1] : text_boxes[idx][0][3], text_boxes[idx][0][0] : text_boxes[idx][0][2]]
     # text_img_path = img_path.replace(".jpg", "_text.png")
-    # cv2.imwrite(img_path + str(idx) + '_text.png', text_img)
+    cv2.imwrite(img_path + str(idx) + '_text.png', text_img)
 
-    text = extract_text(img_path + str(idx) + '_text.png')
+    text = extract_text(text_img, idx, save_text)
 
     # text = detect_text(img_path.replace(".jpg","_denoised.png"))
     return text

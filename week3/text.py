@@ -10,7 +10,7 @@ def bounding_boxes_detection(image_path, mask_set_path, method, save_masks, idx)
     """
     This function detects the bounding boxes of the text in all the images of a specific folder
 
-    :param path: path of the images
+    :param image_path: path of the images
     :param mask_set_path: path where the masks will be saved
     :param method: 1 for color segmentation and 2 for morphology operations
     :param save_masks: bool indicating if the masks need to be saved
@@ -27,7 +27,6 @@ def bounding_boxes_detection(image_path, mask_set_path, method, save_masks, idx)
 
     # Create the empty list to store the bounding boxes coordinates
     boxes = []
-
     # Read every image
     image = cv2.imread(image_path)
 

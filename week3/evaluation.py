@@ -244,7 +244,7 @@ def detect_bounding_boxes(path, mask_set_path, method, save_masks, idx):
         [lowest_pixel_x, lowest_pixel_y, highest_pixel_x, highest_pixel_y] 
     """
 
-    return bounding_boxes_detection(path, mask_set_path, method, save_masks)
+    return bounding_boxes_detection(path, mask_set_path, method, save_masks, idx)
 
 
 def evaluate_text(GT_bounding_boxes, result_bounding_boxes):
