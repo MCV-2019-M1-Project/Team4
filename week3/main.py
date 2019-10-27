@@ -97,7 +97,6 @@ if __name__ == '__main__':
     else:
         museum_textures = None
     if text_descriptors:
-        museum_ocrs = {}
         museum_text_gt = {}
         museum_text_gt_filenames = glob.glob('text/bbdd_text/*.txt')
         museum_text_gt_filenames.sort()
@@ -120,8 +119,6 @@ if __name__ == '__main__':
 
         # Get text descriptor for museum image.
         if text_descriptors:
-            museum_ocrs[idx] = get_text(museum_image, 'text/text_masks/', text_method, idx, None, None, False)
-
             # Read GT for BBDD text_files
             if ground_truth_ocr_available:
                 with open(museum_text_gt_filenames[idx], 'r') as file:
@@ -184,7 +181,6 @@ if __name__ == '__main__':
     idx = 0
     masks = {}
     number_query_elements = len(query_filenames)
-    print(number_query_elements)
 
     # Check the data structures needed to store the features
     if histogram_descriptors:
@@ -315,13 +311,13 @@ if __name__ == '__main__':
     if multiple_subimages:
         print("Getting Similarities for Query Set2 and Museum")
         predictions = calculate_similarities(color_base, metric, dimension, query_histograms, query_textures,
-                                             query_ocrs, museum_histograms, museum_textures, museum_ocrs,
+                                             query_ocrs, museum_histograms, museum_textures, museum_text_gt,
                                              number_query_elements, number_museum_elements)
         top_k = get_top_k(predictions, k, number_subimages)
     else:
         print("Getting Predictions")
         predictions = calculate_similarities(color_base, metric, dimension, query_histograms, query_textures,
-                                             query_ocrs, museum_histograms, museum_textures, museum_ocrs,
+                                             query_ocrs, museum_histograms, museum_textures, museum_text_gt,
                                              number_query_elements, number_museum_elements)
         top_k = get_top_k(predictions, k, None)
 
