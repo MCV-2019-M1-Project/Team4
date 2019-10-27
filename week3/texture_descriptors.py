@@ -109,7 +109,7 @@ def HOG_descriptor(image, mask):
                        multichannel=multichannel)
 
 
-def get_image_texture_descriptor(image, descriptor, descriptor_level, mask):
+def get_image_texture_descriptor(image, descriptor, descriptor_level, mask, x_pixel_to_split, side):
     """
     This functions returns a feature array for a given image. Supported methods to extract the feture vector are LBP,
     DCT and HOG
@@ -118,6 +118,8 @@ def get_image_texture_descriptor(image, descriptor, descriptor_level, mask):
     :param descriptor_level: integer indicating the descriptor level. It is used to calculate the number of blocks in
     which the width and the height will be divided into (LBP and DCT descriptors only)
     :param mask: binary mask that will be applied to the image
+    :param x_pixel_to_split: indicates the x pixel to split the image and mask if there are more than one painting
+    :param side: indicates the side to split the image and mask if there are more than one painting
     :return: feature array of the given image
     """
 
@@ -126,13 +128,22 @@ def get_image_texture_descriptor(image, descriptor, descriptor_level, mask):
         descriptor_level = 3
 
     number_of_blocks = 2**(descriptor_level - 1)
-    im = cv2.imread(image)
+    image = cv2.imread(image)
+
+    if x_pixel_to_split is not None:
+        if side == "left":
+            image = image[1:image.shape[0], 1:int(x_pixel_to_split)]
+            mask = mask[1:mask.shape[0], 1:int(x_pixel_to_split)]
+
+        elif side == "right":
+            image = image[1:image.shape[0], int(x_pixel_to_split):image.shape[1]]
+            mask = mask[1:mask.shape[0], int(x_pixel_to_split):mask.shape[1]]
 
     if descriptor == "LBP":
-        return LBP_descriptor(im, number_of_blocks, mask)
+        return LBP_descriptor(image, number_of_blocks, mask)
     elif descriptor == "DCT":
-        return DCT_descriptor(im, number_of_blocks, mask)
+        return DCT_descriptor(image, number_of_blocks, mask)
     elif descriptor == "HOG":
-        return HOG_descriptor(im, mask)
+        return HOG_descriptor(image, mask)
     else:
         raise Exception("Image descriptor is not valid")

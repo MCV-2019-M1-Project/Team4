@@ -226,12 +226,15 @@ def evaluate_mask(annotation_mask, result_mask):
     return mask_evaluation(annotation_mask, result_mask)
 
 
-def detect_bounding_boxes(path, mask_set_path, method):
+def detect_bounding_boxes(path, mask_set_path, method, save_masks, idx):
     """
     This function detects the bounding boxes of the text in all the images of a specific folder
 
     :param path: path of the images
+    :param mask_set_path: path where the masks need to be saved
     :param method: 1 for color segmentation and 2 for morphology operations
+    :param save_masks: boolean indicating if the masks need to be saved
+    :param idx: int indicating the index of the image
     :return: list of bounding boxes from first image to last image. Each image contains a maximum of 2 bounding boxes.
     
         [[[first_bounding_box_of_first_image],[second_bounding_box_of_second_image]], [[first_bounding_box_of_second_image]], ...]
@@ -241,7 +244,7 @@ def detect_bounding_boxes(path, mask_set_path, method):
         [lowest_pixel_x, lowest_pixel_y, highest_pixel_x, highest_pixel_y] 
     """
 
-    return bounding_boxes_detection(path, mask_set_path, method)
+    return bounding_boxes_detection(path, mask_set_path, method, save_masks)
 
 
 def evaluate_text(GT_bounding_boxes, result_bounding_boxes):
@@ -300,11 +303,10 @@ def remove_noise(test_set_path, query_path, query_image, GT, idx, PSNR):
             for i in range(image.shape[0]):
                 for j in range(image.shape[1]):
 
-                    if (minimum[i,j,nChannel] > median[i,j,nChannel]) | (median[i,j,nChannel] > maximum[i,j,nChannel]):
+                    if (minimum[i, j, nChannel] > median[i, j, nChannel]) | (median[i, j, nChannel] > maximum[i, j, nChannel]):
                         continue
-                    elif (minimum[i,j,nChannel] == denoised_image[i,j,nChannel]) | (denoised_image[i,j,nChannel] == maximum[i,j,nChannel]):
-                        denoised_image[i,j,nChannel] = median[i,j,nChannel]
-
+                    elif (minimum[i, j, nChannel] == denoised_image[i, j, nChannel]) | (denoised_image[i, j, nChannel] == maximum[i, j, nChannel]):
+                        denoised_image[i, j, nChannel] = median[i, j, nChannel]
 
     print("Getting denoised image " + str(idx))
     cv2.imwrite(query_path + '_denoised/' + "{0:0=5d}".format(idx) + '.jpg', denoised_image)
