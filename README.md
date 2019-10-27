@@ -14,7 +14,7 @@ The tasks for the second week include:
 * Repeat the previous analysis with QSD2-W3 (remove noise, remove background, find 1 or 2 paintings and return the correspondences.
 
 
-Slides for Week 3 are available here: [Slides](https://drive.google.com/open?id=1HnHFoQNfw116Y6bx3lS0ndQQlz-D3-SC)
+Slides for Week 3 are available here: [Slides](https://drive.google.com/open?id=1oaOwgYm6ZvufTF3qXziYM_mJLN3E2yK4jtHCWR7Y84Q)
 
 ### How to run
 
