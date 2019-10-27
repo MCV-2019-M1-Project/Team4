@@ -120,8 +120,7 @@ if __name__ == '__main__':
 
         # Get text descriptor for museum image.
         if text_descriptors:
-            museum_ocrs[idx] = get_text(museum_image, 'text/text_masks/', text_method, idx, None, None)
-            print(museum_ocrs[idx])
+            museum_ocrs[idx] = get_text(museum_image, 'text/text_masks/', text_method, idx, None, None, False)
 
             # Read GT for BBDD text_files
             if ground_truth_ocr_available:
@@ -206,8 +205,7 @@ if __name__ == '__main__':
         number_subimages = {}
         query_features_counter = 0
 
-
-    print(query_filenames)
+    # Iterate over the query images to extract the features
     for query_image in query_filenames:
         print("Getting Features for Query Image " + str(idx))
         if text_removal == "True" and not multiple_subimages:
@@ -258,10 +256,10 @@ if __name__ == '__main__':
 
                 if text_descriptors:
                     query_ocrs[query_features_counter] = get_text(query_image, 'text/text_masks/', text_method, idx,
-                                                                  output, 'left')
+                                                                  output, 'left', True)
                     query_features_counter += 1
                     query_ocrs[query_features_counter] = get_text(query_image, 'text/text_masks/', text_method, idx,
-                                                                  output, 'right')
+                                                                  output, 'right', True)
                     query_features_counter += 1
             else:
                 number_subimages[idx] = 1
@@ -276,9 +274,11 @@ if __name__ == '__main__':
                     query_features_counter += 1
 
                 if text_descriptors:
-                    query_ocrs[query_features_counter] = get_text(query_image, 'text/text_masks/', text_method, idx)
+                    query_ocrs[query_features_counter] = get_text(query_image, 'text/text_masks/', text_method, idx,
+                                                                  True)
                     query_features_counter += 1
-                    query_ocrs[query_features_counter] = get_text(query_image, 'text/text_masks/', text_method, idx)
+                    query_ocrs[query_features_counter] = get_text(query_image, 'text/text_masks/', text_method, idx,
+                                                                  True)
                     query_features_counter += 1
 
         elif background_removal == "True":
@@ -307,7 +307,7 @@ if __name__ == '__main__':
 
         if text_descriptors:
             if not multiple_subimages:
-                query_ocrs[idx] = get_text(query_image, 'text/text_masks/', text_method, idx)
+                query_ocrs[idx] = get_text(query_image, 'text/text_masks/', text_method, idx, None, None, True)
 
         idx += 1
 

@@ -48,7 +48,7 @@ def bounding_boxes_detection(image_path, mask_set_path, method, save_masks, idx)
         image_grey[image_grey != 255] = 0
 
         # Cleaning image using morphological opening filter
-        opening_kernel = np.ones((5, 5),np.uint8)/9
+        opening_kernel = np.ones((5, 5), np.uint8)/9
         text_mask = cv2.morphologyEx(image_grey, cv2.MORPH_OPEN, opening_kernel, iterations=1)
 
     #----------------------------------   METHOD 2   ----------------------------------------------------------
@@ -136,8 +136,9 @@ def bounding_boxes_detection(image_path, mask_set_path, method, save_masks, idx)
 
 def bounding_boxes_evaluation(boxA, boxB):
     """
-    This function evaluates the accuracy of the result bounding boxes by calculating the parameter intersection over Union (IoU)
-    
+    This function evaluates the accuracy of the result bounding boxes by calculating the parameter intersection over
+    Union (IoU)
+
     :param boxA: Ground Truth bounding boxes
     :param boxB: bounding boxes detected in the images
 
