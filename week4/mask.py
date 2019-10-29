@@ -1,7 +1,7 @@
 import numpy as np
 import cv2
 from skimage import feature, img_as_ubyte
-from week4.evaluation import *
+from evaluation import *
 
 # Temp imports
 import glob

@@ -211,7 +211,7 @@ def get_mask(image, masks_path, idx):
     """
 
     """
-    return mask_creation(image, masks_path, idx)
+    return mask_creation_v2(image, masks_path, idx)
 
 
 def evaluate_mask(annotation_mask, result_mask, idx):
@@ -305,7 +305,7 @@ def remove_noise(test_set_path, query_path, query_image, GT, idx, PSNR):
             for i in range(image.shape[0]):
                 for j in range(image.shape[1]):
 
-                    if (minimum[i, j, nChannel] > median[i, j, nChannel]) | (median[i, j, nChannel] > maximum[i, j, nChannel]):
+                    if (minimum[i, j, nChannel] == median[i, j, nChannel]) | (median[i, j, nChannel] == maximum[i, j, nChannel]):
                         continue
                     elif (minimum[i, j, nChannel] == denoised_image[i, j, nChannel]) | (denoised_image[i, j, nChannel] == maximum[i, j, nChannel]):
                         denoised_image[i, j, nChannel] = median[i, j, nChannel]
