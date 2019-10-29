@@ -46,7 +46,7 @@ if __name__ == '__main__':
     ground_truth_ocr_available = False
 
     # Denoise parameters
-    execute_denoise_process = False
+    execute_denoise_process = True
     use_denoised_images = True
 
     # Texture parameters

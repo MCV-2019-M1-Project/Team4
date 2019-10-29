@@ -299,8 +299,9 @@ def remove_noise(test_set_path, query_path, query_image, GT, idx, PSNR):
         minimum = cv2.erode(denoised_image, np.ones((kernel,kernel), np.uint8) / kernel**2, iterations = 1)
         maximum = cv2.dilate(denoised_image, np.ones((kernel,kernel), np.uint8) / kernel**2, iterations = 1)
         median = cv2.medianBlur(denoised_image, kernel)
-
+        print("kernel size: ", kernel)
         for nChannel in range(image.shape[2]):
+            print("Number of channel: ", nChannel)
             for i in range(image.shape[0]):
                 for j in range(image.shape[1]):
 
