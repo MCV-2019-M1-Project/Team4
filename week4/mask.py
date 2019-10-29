@@ -152,15 +152,13 @@ def mask_creation_v2(image, mask_path, image_index):
     canny_tresh2 = 110
 
     image = cv2.imread(image)
-    grayscale_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    #grayscale_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-    canny = cv2.Canny(grayscale_image, canny_tresh1, canny_tresh2)
+    canny = cv2.Canny(image, canny_tresh1, canny_tresh2)
     canny = cv2.dilate(canny, None, iterations=2)
     #canny = cv2.erode(canny, None)
 
-    """cv2.imshow('image_canny',
-               cv2.resize(canny, (int(canny.shape[1] * 0.4), int(canny.shape[0] * 0.4)),
-                          cv2.INTER_AREA))
+    """cv2.imshow('image_canny', cv2.resize(canny, (int(canny.shape[1] * 0.4), int(canny.shape[0] * 0.4)), cv2.INTER_AREA))
     cv2.waitKey(0)"""
 
 
@@ -193,7 +191,7 @@ def mask_creation_v2(image, mask_path, image_index):
         cv2.fillConvexPoly(mask, contour_info[2][0], [255, 255, 255])
 
     mask = cv2.dilate(mask, None, iterations=10)
-    mask = cv2.erode(mask, None, iterations=20)
+    mask = cv2.erode(mask, None, iterations=15)
 
     """cv2.imshow('image_canny2',
                cv2.resize(mask, (int(mask.shape[1] * 0.4), int(mask.shape[0] * 0.4)),
@@ -215,7 +213,7 @@ if __name__ == '__main__':
     idx = 0
 
     for query in query_filenames:
-        if idx == 25:
+        if idx == 4:
             pass
             #masks[idx] = mask_creation_v2(query, 'masks/', idx)
         masks[idx] = mask_creation_v2(query, 'masks/', idx)
