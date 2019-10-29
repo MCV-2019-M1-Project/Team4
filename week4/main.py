@@ -64,7 +64,7 @@ if __name__ == '__main__':
     # Text parameters
     text_descriptors = False
 
-    if query_set_path == "images/qsd2_w2" or query_set_path == "images/qsd2_w3":
+    if query_set_path == "images/qsd2_w2" or query_set_path == "images/qsd2_w3" or query_set_path == "images/qsd1_w4":
         multiple_subimages = True
     else:
         multiple_subimages = False
@@ -331,7 +331,7 @@ if __name__ == '__main__':
         save_to_pickle_file(top_k, 'results/QST1/method2/hypo_corresps.pkl')
 
     if ground_truth_available:
-        map_k = get_mapk(GT, predictions, k)
+        map_k = get_mapk(GT, top_k, k)
         print('Map@K result: ' + str(map_k))
 
     if background_removal == "True":
