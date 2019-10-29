@@ -1,5 +1,10 @@
 import numpy as np
 import cv2
+from skimage import feature, img_as_ubyte
+from week4.evaluation import *
+
+# Temp imports
+import glob
 
 def MSE(a,b,axis):
     """
@@ -26,7 +31,7 @@ def mask_creation(image, mask_path, image_index):
     """
     # convert image to hsv color space
     image = cv2.imread(image)
-    
+
     im_hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
     h, s, v = cv2.split(im_hsv)
 
@@ -53,11 +58,11 @@ def mask_creation(image, mask_path, image_index):
 
     # resize masks
     n_mask, m_mask = mask.shape[0], mask.shape[1]
-    mask = cv2.resize(mask, (1000, 1000)) 
+    mask = cv2.resize(mask, (1000, 1000))
 
     # apply mask to find contours
     mask = np.uint8(mask)
-    
+
     contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     # create new mask with the contours found
@@ -87,7 +92,7 @@ def mask_evaluation(annotation_mask, result_mask, idx):
     :return: precision, recall and F1 score
     """
 
-    true_positive = np.sum(np.logical_and(annotation_mask == 255, result_mask == 255))     
+    true_positive = np.sum(np.logical_and(annotation_mask == 255, result_mask == 255))
     false_positive = np.sum(np.logical_and(result_mask == 255, annotation_mask != result_mask))
     false_negative = np.sum(np.logical_and(annotation_mask == 255, annotation_mask != result_mask))
 
@@ -113,13 +118,13 @@ def paintings_detection(query_image, mask):
 
     image_width = mask.shape[0]
     image_height = mask.shape[1]
-    x_box_1, y_box_1, w_box_1, h_box_1, x_box_2, y_box_2, w_box_2, h_box_2 = 0, 0, 0, 0, 0, 0, 0, 0, 
+    x_box_1, y_box_1, w_box_1, h_box_1, x_box_2, y_box_2, w_box_2, h_box_2 = 0, 0, 0, 0, 0, 0, 0, 0,
 
     contours, _ = cv2.findContours(mask,  cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2:]
 
     for cnt in contours:
         x, y, w, h = cv2.boundingRect(cnt)
-        
+
         if (w > 0.15 * image_width) & (h > 0.15 * image_height) & (w < 0.98 * image_width) & (x_box_1 == 0):
             x_box_1, y_box_1, w_box_1, h_box_1 = x, y, w, h
         elif (w > 0.15 * image_width) & (h > 0.15 * image_height) & (w < 0.98 * image_width) & (x_box_1 != 0):
@@ -132,3 +137,106 @@ def paintings_detection(query_image, mask):
 
 
     return(x_value_to_split)
+
+
+def mask_creation_v2(image, mask_path, image_index):
+    """
+
+    :param image:
+    :param mask_path:
+    :param image_index:
+    :return:
+    """
+
+    canny_tresh1 = 10
+    canny_tresh2 = 110
+
+    image = cv2.imread(image)
+    grayscale_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+    canny = cv2.Canny(grayscale_image, canny_tresh1, canny_tresh2)
+    canny = cv2.dilate(canny, None, iterations=2)
+    #canny = cv2.erode(canny, None)
+
+    """cv2.imshow('image_canny',
+               cv2.resize(canny, (int(canny.shape[1] * 0.4), int(canny.shape[0] * 0.4)),
+                          cv2.INTER_AREA))
+    cv2.waitKey(0)"""
+
+
+    # -- Find contours in edges, sort by area
+    contour_info = []
+    contours, _ = cv2.findContours(canny, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
+    for contour in contours:
+        contour_info.append((
+            contour,
+            cv2.contourArea(contour),
+        ))
+    contour_info = sorted(contour_info, key=lambda c: c[1], reverse=True)
+    max_contour = contour_info[0]
+    second_contour = contour_info[1]
+
+    # -- Create empty mask, draw filled polygon on it corresponding to largest contour ----
+    # Mask is black, polygon is white
+    mask = np.zeros_like(canny)
+
+    # Check if there is a second painting in the image
+    #cv2.fillConvexPoly(mask, max_contour[0], [255, 255, 255])
+    """cv2.imshow('image_canny',
+               cv2.resize(mask, (int(mask.shape[1] * 0.4), int(mask.shape[0] * 0.4)),
+                          cv2.INTER_AREA))
+    cv2.waitKey(0)"""
+
+    cv2.fillConvexPoly(mask, max_contour[0], [255, 255, 255])
+    cv2.fillConvexPoly(mask, second_contour[0], [255, 255, 255])
+    if second_contour[1] > max_contour[1]*0.8:
+        cv2.fillConvexPoly(mask, contour_info[2][0], [255, 255, 255])
+
+    mask = cv2.dilate(mask, None, iterations=10)
+    mask = cv2.erode(mask, None, iterations=20)
+
+    """cv2.imshow('image_canny2',
+               cv2.resize(mask, (int(mask.shape[1] * 0.4), int(mask.shape[0] * 0.4)),
+                          cv2.INTER_AREA))
+    cv2.waitKey(0)"""
+
+    # save mask image inside the same folder as the image
+    cv2.imwrite('masks/' + str(image_index).zfill(2) + "_mask.png", mask)
+
+    mask[mask > 127] = 255
+    return mask
+
+
+if __name__ == '__main__':
+    query_filenames = glob.glob("images/qsd1_w4_denoised/*.jpg")
+    query_filenames.sort()
+    masks = {}
+    print(query_filenames)
+    idx = 0
+
+    for query in query_filenames:
+        if idx == 25:
+            pass
+            #masks[idx] = mask_creation_v2(query, 'masks/', idx)
+        masks[idx] = mask_creation_v2(query, 'masks/', idx)
+        idx += 1
+
+    if True:
+        GT_mask = glob.glob('images/qsd1_w4/000*.png')  # Load maks from the ground truth
+        GT_mask.sort()
+        print(GT_mask)
+
+        mean_precision = []
+        mean_recall = []
+        mean_f1score = []
+
+        for i in range(0, len(GT_mask)):  # For each pair of masks, obtain the recall, precision and f1score metrics
+            recall, precision, f1score = evaluate_mask(cv2.cvtColor(cv2.imread(GT_mask[i]), cv2.COLOR_BGR2GRAY),
+                                                                    masks[i], idx)
+            mean_recall.append(recall)
+            mean_precision.append(precision)
+            mean_f1score.append(f1score)
+
+        print('Recall: ' + str(np.array(mean_recall).mean()))
+        print('Precision: ' + str(np.array(mean_precision).mean()))
+        print('F1 score: ' + str(np.array(mean_f1score).mean()))
