@@ -41,21 +41,21 @@ if __name__ == '__main__':
     # GT and results parameters
     save_to_pickle = False
     save_to_pickle_text = False
-    ground_truth_available = False
-    ground_truth_text_available = False
+    ground_truth_available = True
+    ground_truth_text_available = True
     ground_truth_ocr_available = False
 
     # Denoise parameters
-    execute_denoise_process = True
+    execute_denoise_process = False
     use_denoised_images = True
 
     # Texture parameters
-    texture_descriptors = False
+    texture_descriptors = True
     texture_descriptor_level = 3
     texture_method = "LBP"
 
     # Histogram parameters
-    histogram_descriptors = False
+    histogram_descriptors = True
     color_base = "LAB"
     dimension = '2D'
     metric = "bhattacharya_distance"
@@ -64,7 +64,7 @@ if __name__ == '__main__':
     # Text parameters
     text_descriptors = False
 
-    if query_set_path == "qsd2_w2" or query_set_path == "qsd2_w3":
+    if query_set_path == "images/qsd2_w2" or query_set_path == "images/qsd2_w3":
         multiple_subimages = True
     else:
         multiple_subimages = False
@@ -138,7 +138,10 @@ if __name__ == '__main__':
         idx = 0
         PSNR = []  # Peak signal to Noise Ratio
         for query_noise_image in query_noise_filenames:
-            PSNR = remove_noise(test_set_path, query_set_path, query_noise_image, ground_truth_available, idx, PSNR)
+            if ground_truth_available:
+                PSNR = remove_noise(test_set_path, query_set_path, query_noise_image, GT, idx, PSNR)
+            else:
+                PSNR = remove_noise(test_set_path, query_set_path, query_noise_image, 0, idx, PSNR)
             idx += 1
 
         print("Minimum Peak Signal to Noise Ratio: " + str(np.min(PSNR)))
@@ -180,6 +183,7 @@ if __name__ == '__main__':
     print("Getting Query Features")
     idx = 0
     masks = {}
+    masks_evaluation = {}
     number_query_elements = len(query_filenames)
 
     # Check the data structures needed to store the features
@@ -197,18 +201,19 @@ if __name__ == '__main__':
     else:
         query_ocrs = None
 
-    if text_removal == "True" and multiple_subimages:
+    if text_removal and multiple_subimages:
         number_subimages = {}
         query_features_counter = 0
 
     # Iterate over the query images to extract the features
     for query_image in query_filenames:
         print("Getting Features for Query Image " + str(idx))
-        if text_removal == "True" and not multiple_subimages:
+        if text_removal and not multiple_subimages:
             masks[idx] = get_mask(query_image, masks_path, idx)
+            masks_evaluation[idx] = get_mask(query_image, masks_path, idx)
             text_mask = masks[idx]
             text_mask[result_text[idx][0][1]:result_text[idx][0][3], result_text[idx][0][0]:result_text[idx][0][2]] = 0
-
+                
             # Get histogram for the query image
             if histogram_descriptors:
                 query_histograms[idx] = calculate_image_histogram(query_image, text_mask, color_base, dimension, level,
@@ -219,15 +224,16 @@ if __name__ == '__main__':
                 query_textures[idx] = get_image_texture_descriptor(query_image, texture_method, texture_descriptor_level,
                                                                    text_mask, None, None)
 
-        elif text_removal == "True" and multiple_subimages:
+        elif text_removal and multiple_subimages:
 
             # Get image mask
             masks[idx] = get_mask(query_image, masks_path, idx)
+            masks_evaluation[idx] = get_mask(query_image, masks_path, idx)
             text_mask = masks[idx]
             for result_index in range(0, len(result_text[idx])):
                 text_mask[result_text[idx][result_index][1]:result_text[idx][result_index][3], result_text[idx][result_index][0]:result_text[idx][result_index][2]] = 0
 
-            output = paintings_detection(query_image, masks[idx])
+            output = paintings_detection(query_image, masks_evaluation[idx])
             if output > 0:
                 number_subimages[idx] = 2
                 if histogram_descriptors:
@@ -273,23 +279,20 @@ if __name__ == '__main__':
                     query_ocrs[query_features_counter] = get_text(query_image, 'text/text_masks/', text_method, idx,
                                                                   True)
                     query_features_counter += 1
-                    
 
-        elif background_removal == "True":
+
+        elif background_removal:
             masks[idx] = get_mask(query_image, masks_path, idx)
-            # Detects if there is more than one painting (0 if there is only one painting)
-            x_pixel_to_split = paintings_detection(query_image, masks[idx])
-            if x_pixel_to_split == 0:  # Only one painting
-                if histogram_descriptors:
-                    query_histograms[idx] = calculate_image_histogram(query_image, masks[idx], color_base, dimension,
-                                                                      level, None, None)
+            if histogram_descriptors:
+                query_histograms[idx] = calculate_image_histogram(query_image, masks[idx], color_base, dimension,
+                                                                    level, None, None)
 
-                if texture_descriptors:
-                    query_textures[idx] = get_image_texture_descriptor(query_image, texture_method,
-                                                                       texture_descriptor_level, masks[idx])
+            if texture_descriptors:
+                query_textures[idx] = get_image_texture_descriptor(query_image, texture_method,
+                                                                    texture_descriptor_level, masks[idx])
 
-                if text_descriptors:
-                    query_ocrs[idx] = get_text(query_image, 'text/text_masks/', text_method, idx)
+            if text_descriptors:
+                query_ocrs[idx] = get_text(query_image, 'text/text_masks/', text_method, idx)
         else:
             if histogram_descriptors:
                 query_histograms[idx] = calculate_image_histogram(query_image, None, color_base, dimension, level, None,
@@ -308,9 +311,10 @@ if __name__ == '__main__':
     # Compute similarities to museum images for each image
     if multiple_subimages:
         print("Getting Similarities for Query Set2 and Museum")
+        print("Query features counter: ", query_features_counter)
         predictions = calculate_similarities(color_base, metric, dimension, query_histograms, query_textures,
                                              query_ocrs, museum_histograms, museum_textures, museum_text_gt,
-                                             number_query_elements, number_museum_elements)
+                                             query_features_counter, number_museum_elements)
         top_k = get_top_k(predictions, k, number_subimages)
     else:
         print("Getting Predictions")
@@ -341,13 +345,13 @@ if __name__ == '__main__':
         mean_precision = []
         mean_recall = []
         mean_f1score = []
-        for idx, mask in masks.items():  # For each pair of masks, obtain the recall, precision and f1score metrics
-            recall, precision, f1score = evaluate_mask(cv2.cvtColor(cv2.imread(GT_masks[idx]), cv2.COLOR_BGR2GRAY),
-                                                       mask)
+        for idx, mask in masks_evaluation.items():  # For each pair of masks, obtain the recall, precision and f1score metrics
+            recall, precision, f1score = evaluate_mask(cv2.imread((GT_masks[idx]), cv2.COLOR_BGR2GRAY), 
+                                                        mask, idx)
             mean_recall.append(recall)
             mean_precision.append(precision)
             mean_f1score.append(f1score)
 
-        print('Recall: ' + str(np.array(mean_recall).mean()))
         print('Precision: ' + str(np.array(mean_precision).mean()))
+        print('Recall: ' + str(np.array(mean_recall).mean()))
         print('F1 score: ' + str(np.array(mean_f1score).mean()))

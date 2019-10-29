@@ -61,23 +61,23 @@ def mask_creation(image, mask_path, image_index):
     contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     # create new mask with the contours found
-    new_mask = cv2.fillPoly(mask, contours, [255, 255, 255])
+    mask_contours = cv2.fillPoly(mask, contours, [255, 255, 255])
 
     # Apply morphological filter to clean
     kernel = np.ones((9, 9), np.float32)/25
-    new_mask = cv2.morphologyEx(new_mask, cv2.MORPH_ERODE, kernel, iterations = 2)
-    new_mask = cv2.morphologyEx(new_mask, cv2.MORPH_DILATE, kernel, iterations = 1)
+    mask_erode = cv2.morphologyEx(mask_contours, cv2.MORPH_ERODE, kernel, iterations = 1)
+    mask_dilate = cv2.morphologyEx(mask_erode, cv2.MORPH_DILATE, kernel, iterations = 1)
 
     # resize masks to original size
-    new_mask = cv2.resize(new_mask, (m_mask, n_mask))
+    new_mask = cv2.resize(mask_dilate, (m_mask, n_mask))
 
     # save mask image inside the same folder as the image
-    # cv2.imwrite(mask_path + str(image_index).zfill(2) + "_mask.png", new_mask)
+    cv2.imwrite(mask_path + str(image_index).zfill(2) + "_mask.png", new_mask)
 
     return new_mask
 
 
-def mask_evaluation(annotation_mask, result_mask):
+def mask_evaluation(annotation_mask, result_mask, idx):
     """
     This function calculates the Precision, Recall and F1 score by comparing the ground truth mask
     with the mask obtained with our algorithm.
@@ -89,7 +89,7 @@ def mask_evaluation(annotation_mask, result_mask):
 
     true_positive = np.sum(np.logical_and(annotation_mask == 255, result_mask == 255))     
     false_positive = np.sum(np.logical_and(result_mask == 255, annotation_mask != result_mask))
-    false_negative = np.sum(np.logical_and(annotation_mask == 255, annotation_mask != result_mask))   
+    false_negative = np.sum(np.logical_and(annotation_mask == 255, annotation_mask != result_mask))
 
     precision = true_positive / (true_positive + false_positive)
     recall = true_positive / (true_positive + false_negative)

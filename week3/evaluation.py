@@ -215,7 +215,7 @@ def get_mask(image, masks_path, idx):
     return mask_creation(image, masks_path, idx)
 
 
-def evaluate_mask(annotation_mask, result_mask):
+def evaluate_mask(annotation_mask, result_mask, idx):
     """
     This function calculates the Precision, Recall and F1 score by comparing the ground truth mask
     with the mask obtained with our algorithm.
@@ -225,7 +225,7 @@ def evaluate_mask(annotation_mask, result_mask):
     :return: precision, recall and F1 score
     """
 
-    return mask_evaluation(annotation_mask, result_mask)
+    return mask_evaluation(annotation_mask, result_mask, idx)
 
 
 def detect_bounding_boxes(path, mask_set_path, method, save_masks, idx):
@@ -277,7 +277,7 @@ def detect_paintings(query_image, mask, idx):
     return paintings_detection(query_image, mask, idx)
 
     
-def remove_noise(test_set_path, query_path, query_image, evaluation, idx, PSNR):
+def remove_noise(test_set_path, query_path, query_image, GT, idx, PSNR):
 
     # Remove noise
 
@@ -314,7 +314,7 @@ def remove_noise(test_set_path, query_path, query_image, evaluation, idx, PSNR):
     cv2.imwrite(query_path + '_denoised/' + "{0:0=5d}".format(idx) + '.jpg', denoised_image)
 
     # Getting original image
-    if evaluation:
+    if GT is not 0:
         museum_filenames = glob.glob(test_set_path + '*.jpg')
         museum_filenames.sort()
     
