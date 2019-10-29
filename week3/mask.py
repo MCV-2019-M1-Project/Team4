@@ -72,7 +72,7 @@ def mask_creation(image, mask_path, image_index):
     new_mask = cv2.resize(mask_dilate, (m_mask, n_mask))
 
     # save mask image inside the same folder as the image
-    cv2.imwrite(mask_path + str(image_index).zfill(2) + "_mask.png", new_mask)
+    # cv2.imwrite(mask_path + str(image_index).zfill(2) + "_mask.png", new_mask)
 
     return new_mask
 

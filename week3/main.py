@@ -235,50 +235,47 @@ if __name__ == '__main__':
 
             output = paintings_detection(query_image, masks_evaluation[idx])
             if output > 0:
-                number_subimages[idx] = 2
+                number_subimages[query_features_counter] = 2
+                number_subimages[query_features_counter + 1] = 0
                 if histogram_descriptors:
                     query_histograms[query_features_counter] = calculate_image_histogram(query_image, text_mask,
                                                                                          color_base, dimension, level,
                                                                                          output, 'left')
-                    query_features_counter += 1
-                    query_histograms[query_features_counter] = calculate_image_histogram(query_image, text_mask,
+                    query_histograms[query_features_counter + 1] = calculate_image_histogram(query_image, text_mask,
                                                                                          color_base, dimension, level,
                                                                                          output, 'right')
-                    query_features_counter += 1
 
                 if texture_descriptors:
                     query_textures[query_features_counter] = get_image_texture_descriptor(query_image, texture_method,
                                                                                           texture_descriptors, text_mask,
                                                                                           output, 'left')
-                    query_features_counter += 1
-                    query_textures[query_features_counter] = get_image_texture_descriptor(query_image, texture_method,
+                    query_textures[query_features_counter + 1] = get_image_texture_descriptor(query_image, texture_method,
                                                                                           texture_descriptors, text_mask,
                                                                                           output, 'right')
-                    query_features_counter += 1
 
                 if text_descriptors:
                     query_ocrs[query_features_counter] = get_text(query_image, 'text/text_masks/', text_method, idx,
                                                                   output, 'left', True)
-                    query_features_counter += 1
-                    query_ocrs[query_features_counter] = get_text(query_image, 'text/text_masks/', text_method, idx,
+                    query_ocrs[query_features_counter + 1] = get_text(query_image, 'text/text_masks/', text_method, idx,
                                                                   output, 'right', True)
-                    query_features_counter += 1
+                
+                query_features_counter += 2
+                
             else:
-                number_subimages[idx] = 1
+                number_subimages[query_features_counter] = 1
                 if histogram_descriptors:
                     query_histograms[query_features_counter] = calculate_image_histogram(query_image, None, color_base,
                                                                                          dimension, level, None, None)
-                    query_features_counter += 1
 
                 if texture_descriptors:
                     query_textures[query_features_counter] = get_image_texture_descriptor(query_image, texture_method,
                                                                                          texture_descriptor_level, None, None, None)
-                    query_features_counter += 1
 
                 if text_descriptors:
                     query_ocrs[query_features_counter] = get_text(query_image, 'text/text_masks/', text_method, idx,
                                                                   True)
-                    query_features_counter += 1
+                
+                query_features_counter += 1
 
 
         elif background_removal:
@@ -311,7 +308,7 @@ if __name__ == '__main__':
     # Compute similarities to museum images for each image
     if multiple_subimages:
         print("Getting Similarities for Query Set2 and Museum")
-        print("Query features counter: ", query_features_counter)
+        print("Number of paintings in query set when there are subpaintings: ", query_features_counter)
         predictions = calculate_similarities(color_base, metric, dimension, query_histograms, query_textures,
                                              query_ocrs, museum_histograms, museum_textures, museum_text_gt,
                                              query_features_counter, number_museum_elements)

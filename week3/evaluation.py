@@ -107,8 +107,6 @@ def calculate_similarities(color_base, metric, dimension, query_hists, query_tex
     """
 
     predictions = []
-    print(query_ocrs)
-    print(museum_ocrs)
 
     for idx_query in range(num_query_elements):
         query_element_distances_list = []
@@ -178,16 +176,17 @@ def get_top_k(predictions, k, number_subimages_dic):
     else:
         predictions_idx = 0
         for idx, number_subimages in number_subimages_dic.items():
+            if number_subimages == 0:
+                continue
             if number_subimages == 1:
                 del(predictions[idx][k:])
                 predictions_to_return.append(predictions[idx])
             else:
                 aux_list = []
                 del (predictions[predictions_idx][k:])
-                aux_list.append(predictions[predictions_idx])
-                predictions_idx += 1
-                del (predictions[predictions_idx][k:])
-                aux_list.append(predictions[predictions_idx])
+                aux_list.extend(predictions[predictions_idx])
+                del (predictions[predictions_idx + 1][k:])
+                aux_list.extend(predictions[predictions_idx + 1])
                 predictions_to_return.append(aux_list)
 
             predictions_idx += 1
