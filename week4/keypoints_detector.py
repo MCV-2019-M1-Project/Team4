@@ -4,8 +4,8 @@ from skimage import feature
 from enum import Enum
 
 class handler(Enum):
-	QUERY = 1
-	DB = 0
+    QUERY = 1
+    DB = 0
 
 
 def laplacian_of_gaussian(image):
@@ -78,7 +78,7 @@ def harris_laplacian(image):
 
 def sift_keypoints(image, mode):
     """
-    To extract keypoints of an image using the Difference of Gaussians method.
+    To extract keypoints of an image using the Difference of Gaussians method for SIFT.
     Args:
         image (ndarray): (H x W) 2D array of type np.uint8 containing a grayscale image.
         mode (int): indicates if keypoints are detected on a query or a python opencvdatabase image.
@@ -100,7 +100,7 @@ def sift_keypoints(image, mode):
 
 def surf_keypoints(image, mode):
     """
-    Extract keypoints of an image using Box Filter to approximate LoG, and the
+    To extract keypoints of an image using Box Filter to approximate LoG, and the
     Hessian matrix for both scale and location.
     Args:
         image (ndarray): (H x W) 2D array of type np.uint8 containing a grayscale image.
@@ -123,7 +123,7 @@ def surf_keypoints(image, mode):
 
 def orb_keypoints(image):
     """
-    Extract keypoints of an image using the ORB method.
+    To extract the keypoints of an image using the ORB method.
     Args:
         image (ndarray): (H x W) 2D array of type np.uint8 containing a grayscale image.
     Returns:
@@ -138,7 +138,7 @@ def orb_keypoints(image):
 def harris_corner_detector(image, mode):
 
     """
-    Extract keypoints from image using Harris Corner Detector.
+    To extract the keypoints from image using Harris Corner Detector.
     Args:
         image (ndarray): (H x W) 2D array of type np.uint8 containing a grayscale image.
     Returns:
@@ -152,7 +152,7 @@ def harris_corner_detector(image, mode):
 
 def harris_corner_subpixel_accuracy(image, mode):
     """
-    Extract keypoints from image using Harris Corner Detector with subpixel accuracy.
+    To extract keypoints from image using Harris Corner Detector with subpixel accuracy.
     Args:
         image (ndarray): (H x W) 2D array of type np.uint8 containing a grayscale image.
     Returns:
@@ -180,3 +180,21 @@ def harris_corner_subpixel_accuracy(image, mode):
     corners = cv2.cornerSubPix(image, np.float32(centroids), (2, 2), (-1, -1), criteria)
 
     return [cv2.KeyPoint(corner[0], corner[1], 4) for corner in corners]
+
+
+def detect_keypoints(image, method, mode=None)
+    detector = {
+        'dog': difference_of_gaussian,
+        'log': laplacian_of_gaussian,
+        'doh': determinant_of_hessian,
+        'hl': harris_laplacian,
+        'sift': sift_keypoints,
+        'surf': surf_keypoints,
+        'orb': orb_keypoints,
+        'harris_corner_detector': harris_corner_detector,
+        'harris_corner_subpixel': harris_corner_subpixel_accuracy
+    }
+    if mode is not None:
+        return detector[method](image, mode)
+    else:
+        return detector[method](image)
