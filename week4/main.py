@@ -43,7 +43,7 @@ if __name__ == '__main__':
     save_to_pickle_text = False
     ground_truth_available = True
     ground_truth_text_available = True
-    ground_truth_ocr_available = False
+    ground_truth_ocr_available = True
 
     # Denoise parameters
     execute_denoise_process = False
@@ -166,7 +166,7 @@ if __name__ == '__main__':
         idx = 0
         for image in query_filenames:
             print("Getting text for query image " + str(idx))
-            result_text.extend(detect_bounding_boxes(image, mask_text_path, text_method, False, idx))
+            result_text.extend(detect_bounding_boxes(image, mask_text_path, text_method, True, idx))
             idx += 1
 
         # Check if the text results need to be saved in a pickle file
@@ -272,8 +272,8 @@ if __name__ == '__main__':
                                                                                          texture_descriptor_level, None, None, None)
 
                 if text_descriptors:
-                    query_ocrs[query_features_counter] = get_text(query_image, 'text/text_masks/', text_method, idx,
-                                                                  True)
+                    query_ocrs[query_features_counter] = get_text(query_image, 'text/text_masks/', text_method, idx, None, 
+                                                                  None, True)
                 
                 query_features_counter += 1
 
@@ -289,7 +289,7 @@ if __name__ == '__main__':
                                                                     texture_descriptor_level, masks[idx])
 
             if text_descriptors:
-                query_ocrs[idx] = get_text(query_image, 'text/text_masks/', text_method, idx)
+                query_ocrs[idx] = get_text(query_image, 'text/text_masks/', text_method, idx, None, None, True)
         else:
             if histogram_descriptors:
                 query_histograms[idx] = calculate_image_histogram(query_image, None, color_base, dimension, level, None,
@@ -299,8 +299,7 @@ if __name__ == '__main__':
                 query_textures[idx] = get_image_texture_descriptor(query_image, texture_method,
                                                                    texture_descriptor_level, None)
 
-        if text_descriptors:
-            if not multiple_subimages:
+            if text_descriptors:
                 query_ocrs[idx] = get_text(query_image, 'text/text_masks/', text_method, idx, None, None, True)
 
         idx += 1

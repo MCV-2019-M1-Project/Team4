@@ -35,5 +35,6 @@ The textRemoval parameter indicates if the text has to be removed from the query
 The textRemovalMethod parameter indicates the method used for text detection:
 * 1 : text detection based on color segmentation
 * 2 : text detection based on morphology operations
+* 3 : text detection based on EAST opencv neural network
 
 The k parameter is used to indicate the number of top results that need to be saved.

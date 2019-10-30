@@ -4,6 +4,9 @@ import cv2
 import numpy as np   
 import glob
 import os
+import argparse
+import time
+from imutils.object_detection import non_max_suppression
 
 
 def bounding_boxes_detection(image_path, mask_set_path, method, save_masks, idx):
@@ -12,7 +15,7 @@ def bounding_boxes_detection(image_path, mask_set_path, method, save_masks, idx)
 
     :param image_path: path of the images
     :param mask_set_path: path where the masks will be saved
-    :param method: 1 for color segmentation and 2 for morphology operations
+    :param method: 1 for color segmentation, 2 for morphology operations, 3 for neural network
     :param save_masks: bool indicating if the masks need to be saved
     :param idx: int containing the index of the image
     :return: list of bounding boxes from first image to last image. Each image contains a maximum of 2 bounding boxes.
@@ -51,6 +54,7 @@ def bounding_boxes_detection(image_path, mask_set_path, method, save_masks, idx)
         opening_kernel = np.ones((5, 5), np.uint8)/9
         text_mask = cv2.morphologyEx(image_grey, cv2.MORPH_OPEN, opening_kernel, iterations=1)
 
+
     #----------------------------------   METHOD 2   ----------------------------------------------------------
     """
     Method 2: text detection based on morphology operations
@@ -63,7 +67,7 @@ def bounding_boxes_detection(image_path, mask_set_path, method, save_masks, idx)
         im_y, _, _ = cv2.split(im_yuv)
 
         # Define kernel sizes
-        kernel = np.ones((3, 3), np.float32)/9
+        kernel = np.ones((5, 10), np.float32)/9
 
         # Difference between erosion and dilation images
         y_dilation = cv2.morphologyEx(im_y, cv2.MORPH_DILATE, kernel, iterations=1)
@@ -86,11 +90,133 @@ def bounding_boxes_detection(image_path, mask_set_path, method, save_masks, idx)
 
         text_mask = inverted_binary_image
 
+    #----------------------------------   METHOD 3   ----------------------------------------------------------
+    """
+    Method 3: EAST opencv text detection based on Neural Network
+    """
+    if method == 3:
+
+        min_confidence = 0.8
+
+        # load the input image and grab the image dimensions
+        image = cv2.imread(image_path)
+        orig = image.copy()
+        (H, W) = image.shape[:2]
+
+        # create an empty text mask
+        text_mask = np.zeros((H,W,1), np.uint8)
+
+        # set the new width and height and then determine the ratio in change
+        # for both the width and height
+        newW, newH = 320, 320
+        rW = W / float(newW)
+        rH = H / float(newH)
+
+        # resize the image and grab the new image dimensions
+        image = cv2.resize(image, (newW, newH))
+        (H, W) = image.shape[:2]
+
+        # define the two output layer names for the EAST detector model that
+        # we are interested -- the first is the output probabilities and the
+        # second can be used to derive the bounding box coordinates of text
+        layerNames = [
+            "feature_fusion/Conv_7/Sigmoid",
+            "feature_fusion/concat_3"]
+
+        # load the pre-trained EAST text detector
+        # print("[INFO] loading EAST text detector...")
+        net = cv2.dnn.readNet("text/frozen_east_text_detection.pb")
+
+        # construct a blob from the image and then perform a forward pass of
+        # the model to obtain the two output layer sets
+        blob = cv2.dnn.blobFromImage(image, 1.0, (W, H),
+            (123.68, 116.78, 103.94), swapRB=True, crop=False)
+        start = time.time()
+        net.setInput(blob)
+        (scores, geometry) = net.forward(layerNames)
+        end = time.time()
+
+        # show timing information on text prediction
+        # print("[INFO] text detection took {:.6f} seconds".format(end - start))
+
+        # grab the number of rows and columns from the scores volume, then
+        # initialize our set of bounding box rectangles and corresponding
+        # confidence scores
+        (numRows, numCols) = scores.shape[2:4]
+        rects = []
+        confidences = []
+
+        # loop over the number of rows
+        for y in range(0, numRows):
+            # extract the scores (probabilities), followed by the geometrical
+            # data used to derive potential bounding box coordinates that
+            # surround text
+            scoresData = scores[0, 0, y]
+            xData0 = geometry[0, 0, y]
+            xData1 = geometry[0, 1, y]
+            xData2 = geometry[0, 2, y]
+            xData3 = geometry[0, 3, y]
+            anglesData = geometry[0, 4, y]
+
+            # loop over the number of columns
+            for x in range(0, numCols):
+                # if our score does not have sufficient probability, ignore it
+                if scoresData[x] < min_confidence:
+                    continue
+
+                # compute the offset factor as our resulting feature maps will
+                # be 4x smaller than the input image
+                (offsetX, offsetY) = (x * 4.0, y * 4.0)
+
+                # extract the rotation angle for the prediction and then
+                # compute the sin and cosine
+                angle = anglesData[x]
+                cos = np.cos(angle)
+                sin = np.sin(angle)
+
+                # use the geometry volume to derive the width and height of
+                # the bounding box
+                h = xData0[x] + xData2[x]
+                w = xData1[x] + xData3[x]
+
+                # compute both the starting and ending (x, y)-coordinates for
+                # the text prediction bounding box
+                endX = int(offsetX + (cos * xData1[x]) + (sin * xData2[x]))
+                endY = int(offsetY - (sin * xData1[x]) + (cos * xData2[x]))
+                startX = int(endX - w)
+                startY = int(endY - h)
+
+                # add the bounding box coordinates and probability score to
+                # our respective lists
+                rects.append((startX, startY, endX, endY))
+                confidences.append(scoresData[x])
+
+            # apply non-maxima suppression to suppress weak, overlapping bounding
+            # boxes
+            bounding_boxes = non_max_suppression(np.array(rects), probs=confidences)
+
+        # loop over the bounding boxes
+        for (startX, startY, endX, endY) in bounding_boxes:
+            # scale the bounding box coordinates based on the respective
+            # ratios
+            startX = int(startX * rW)
+            startY = int(startY * rH)
+            endX = int(endX * rW)
+            endY = int(endY * rH)
+
+            # if ((endX - startX) / (endY - startY) > 2) & ((endX - startX) / (endY - startY)  < 12) & ((endX - startX) > (0.1 * W)):
+        
+            # draw the bounding box on the image
+            cv2.rectangle(orig, (startX, startY), (endX, endY), (0, 255, 0), 2)
+            # box = [startX, startY, endX, endY]
+            # bounding_boxes.append(box)
+            text_mask[startY : endY, (startX - int(0.05 * startX)) : (endX  + int(0.05 * endX))] = 255
+
 
     #------------------------------   FINDING AND CHOOSING CONTOURS OF THE BINARY MASK   ---------------------------------------
 
     # Finding contours of the white areas of the images (high possibility of text)
-    contours, _ = cv2.findContours(text_mask,  cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2:]
+    contours, _ = cv2.findContours(text_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2:]
 
     # Initialize parameters
     largest_area, second_largest_area, x_box_1, y_box_1, w_box_1, h_box_1, x_box_2, y_box_2, w_box_2, h_box_2 = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
@@ -101,7 +227,7 @@ def bounding_boxes_detection(image_path, mask_set_path, method, save_masks, idx)
         x, y, w, h = cv2.boundingRect(cnt)
         area = cv2.contourArea(cnt)
 
-        if (w / h > 2) & (w / h < 12) & (w > (0.1 * image_width)) & (area > second_largest_area):
+        if (w / h > 3) & (w / h < 12) & (w > (0.1 * image_width)) & (area > second_largest_area):
 
             if area > largest_area:
                 x_box_2, y_box_2, w_box_2, h_box_2 = x_box_1, y_box_1, w_box_1, h_box_1
@@ -118,7 +244,7 @@ def bounding_boxes_detection(image_path, mask_set_path, method, save_masks, idx)
 
     # Append the corners of the bounding boxes to the boxes list
 
-    if (x_box_2 == y_box_2 == 0) | (image_path == 'images/qst1_w3_denoised/'):
+    if (x_box_2 == y_box_2 == 0) | (image_path == 'images/qsd1_w3_denoised/'):
         box = [[x_box_1, y_box_1, x_box_1 + w_box_1, y_box_1 + h_box_1]]
         boxes.append(box)
     elif x_box_1 < x_box_2:
@@ -127,6 +253,10 @@ def bounding_boxes_detection(image_path, mask_set_path, method, save_masks, idx)
     else:
         box = [[x_box_2, y_box_2, x_box_2 + w_box_2, y_box_2 + h_box_2], [x_box_1, y_box_1, x_box_1 + w_box_1, y_box_1 + h_box_1]]
         boxes.append(box)
+
+    text_mask[:,:] = 0
+    text_mask[y_box_1 : (y_box_1 + h_box_1), x_box_1 : (x_box_1 + w_box_1)] = 255
+    text_mask[y_box_2 : (y_box_2 + h_box_2), x_box_2 : (x_box_2 + w_box_2)] = 255
 
     if save_masks:
         cv2.imwrite(mask_set_path + str(idx) + '.png', text_mask)

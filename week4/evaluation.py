@@ -233,7 +233,7 @@ def detect_bounding_boxes(path, mask_set_path, method, save_masks, idx):
 
     :param path: path of the images
     :param mask_set_path: path where the masks need to be saved
-    :param method: 1 for color segmentation and 2 for morphology operations
+    :param method: 1 for color segmentation, 2 for morphology operations, 3 for neural network
     :param save_masks: boolean indicating if the masks need to be saved
     :param idx: int indicating the index of the image
     :return: list of bounding boxes from first image to last image. Each image contains a maximum of 2 bounding boxes.
@@ -287,7 +287,7 @@ def remove_noise(test_set_path, query_path, query_image, GT, idx, PSNR):
     # Adaptative median filter
  
     denoised_image = image
-    kernel_max = 11
+    kernel_max = 13
     kernel = 1
     minimum = cv2.erode(image, np.ones((kernel,kernel), np.uint8) / kernel**2, iterations = 1)
     maximum = cv2.dilate(image, np.ones((kernel,kernel), np.uint8) / kernel**2, iterations = 1)

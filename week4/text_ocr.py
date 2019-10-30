@@ -1,7 +1,7 @@
 import cv2
 from text import bounding_boxes_detection
 
-# import pytesseract
+import pytesseract
 from PIL import Image
 
 
@@ -13,11 +13,11 @@ def extract_text(cropped_image_path, idx, to_save):
     :param to_save:
     :return:
     """
-
+    # pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
     text = pytesseract.image_to_string(cropped_image_path)
 
     if to_save:
-        with open('results/qst1/method1/text_' + str(idx) + '.txt', 'w+') as file:
+        with open('text/text_' + str(idx) + '.txt', 'w+') as file:
             file.writelines(text)
             file.close()
 
