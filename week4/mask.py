@@ -6,6 +6,7 @@ from evaluation import *
 # Temp imports
 import glob
 
+
 def MSE(a,b,axis):
     """
     This function computes the MSE between a and b along the specified axis.
@@ -139,69 +140,46 @@ def paintings_detection(query_image, mask):
     return(x_value_to_split)
 
 
-def mask_creation_v2(image, mask_path, image_index):
+def mask_creation_v2(image_path, path, idx):
     """
 
     :param image:
-    :param mask_path:
-    :param image_index:
+    :param idx:
     :return:
     """
 
+    image = cv2.imread(image_path)
+    image = cv2.medianBlur(image, 9)
+
     canny_tresh1 = 10
-    canny_tresh2 = 110
+    canny_tresh2 = 30
+    canny_image = cv2.Canny(image, canny_tresh1, canny_tresh2)
+    canny_image = cv2.dilate(canny_image, None, iterations=7)
 
-    image = cv2.imread(image)
-    #grayscale_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    contours, _ = cv2.findContours(canny_image, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
+    contours_info = []
 
-    canny = cv2.Canny(image, canny_tresh1, canny_tresh2)
-    canny = cv2.dilate(canny, None, iterations=2)
-    #canny = cv2.erode(canny, None)
-
-    """cv2.imshow('image_canny', cv2.resize(canny, (int(canny.shape[1] * 0.4), int(canny.shape[0] * 0.4)), cv2.INTER_AREA))
-    cv2.waitKey(0)"""
-
-
-    # -- Find contours in edges, sort by area
-    contour_info = []
-    contours, _ = cv2.findContours(canny, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
     for contour in contours:
-        contour_info.append((
+        contours_info.append((
             contour,
             cv2.contourArea(contour),
         ))
-    contour_info = sorted(contour_info, key=lambda c: c[1], reverse=True)
-    max_contour = contour_info[0]
-    second_contour = contour_info[1]
+    contours_info = sorted(contours_info, key=lambda c: c[1], reverse=True)
+    biggest_contour = contours_info[0]
 
-    # -- Create empty mask, draw filled polygon on it corresponding to largest contour ----
-    # Mask is black, polygon is white
-    mask = np.zeros_like(canny)
+    mask = np.zeros_like(canny_image)
 
-    # Check if there is a second painting in the image
-    #cv2.fillConvexPoly(mask, max_contour[0], [255, 255, 255])
-    """cv2.imshow('image_canny',
-               cv2.resize(mask, (int(mask.shape[1] * 0.4), int(mask.shape[0] * 0.4)),
-                          cv2.INTER_AREA))
-    cv2.waitKey(0)"""
+    for contour in contours_info:
+        if contour[1] > biggest_contour[1]*0.1:
+            cv2.fillConvexPoly(mask, contour[0], [255, 255, 255])
 
-    cv2.fillConvexPoly(mask, max_contour[0], [255, 255, 255])
-    cv2.fillConvexPoly(mask, second_contour[0], [255, 255, 255])
-    if second_contour[1] > max_contour[1]*0.8:
-        cv2.fillConvexPoly(mask, contour_info[2][0], [255, 255, 255])
+    mask = cv2.dilate(mask, None, iterations=2)
+    mask = cv2.erode(mask, None, iterations=9)
 
-    mask = cv2.dilate(mask, None, iterations=10)
-    mask = cv2.erode(mask, None, iterations=15)
+    image_masked = cv2.bitwise_and(image, image, mask=mask)
+    retval, thresh = cv2.threshold(cv2.cvtColor(image_masked, cv2.COLOR_BGR2GRAY), 0, 255, cv2.THRESH_OTSU)
 
-    """cv2.imshow('image_canny2',
-               cv2.resize(mask, (int(mask.shape[1] * 0.4), int(mask.shape[0] * 0.4)),
-                          cv2.INTER_AREA))
-    cv2.waitKey(0)"""
-
-    # save mask image inside the same folder as the image
-    cv2.imwrite('masks/' + str(image_index).zfill(2) + "_mask.png", mask)
-
-    mask[mask > 127] = 255
+    cv2.imwrite('masks/' + str(idx).zfill(2) + "_mask.png", mask)
     return mask
 
 
@@ -213,10 +191,10 @@ if __name__ == '__main__':
     idx = 0
 
     for query in query_filenames:
-        if idx == 4:
-            pass
-            #masks[idx] = mask_creation_v2(query, 'masks/', idx)
-        masks[idx] = mask_creation_v2(query, 'masks/', idx)
+        if idx == 12:
+            #pass
+            masks[idx] = mask_creation_v2(query, 'masks/', idx)
+        #masks[idx] = mask_creation_v3(query, 'masks/', idx)
         idx += 1
 
     if True:
