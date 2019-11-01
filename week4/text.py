@@ -9,7 +9,7 @@ import time
 from imutils.object_detection import non_max_suppression
 
 
-def bounding_boxes_detection(image_path, mask_set_path, method, save_masks, idx, subpaintings=None):
+def bounding_boxes_detection(image_path, mask_set_path, method, save_masks, subpaintings, idx):
     """
     This function detects the bounding boxes of the text in all the images of a specific folder
 

@@ -254,7 +254,6 @@ if __name__ == '__main__':
 
             # Get image mask
             text_mask = masks[idx]
-            import pdb; pdb.set_trace()
             text_mask[result_text[idx][0][1]:result_text[idx][0][3], result_text[idx][0][0]:result_text[idx][0][2]] = 0
 
             if output > 0:
@@ -277,9 +276,9 @@ if __name__ == '__main__':
                                                                                           output, 'right')
 
                 if text_descriptors:
-                    query_ocrs[query_features_counter] = get_text(query_image, 'text/text_masks/', text_method, idx, output, 'left', True, 2)
+                    query_ocrs[query_features_counter] = get_text(query_image, 'text/text_masks/', text_method, idx, output, 'left', True)
                     query_ocrs[query_features_counter + 1] = get_text(query_image, 'text/text_masks/', text_method, idx,
-                                                                  output, 'right', True, 2)
+                                                                  output, 'right', True)
 
                 if local_descriptors:
                     query_local_descriptors[query_features_counter] = extract_local_descriptors(query_image, text_mask, 

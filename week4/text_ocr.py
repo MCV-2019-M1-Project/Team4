@@ -24,7 +24,7 @@ def extract_text(cropped_image_path, idx, to_save):
     return text
 
 
-def get_text(img_path, mask_text_path, method, idx, x_pixel_to_split, side, save_text, subpaintings):
+def get_text(img_path, mask_text_path, method, idx, x_pixel_to_split, side, save_text):
     """
     This function returns the detected text after recognition
     :param img_path:
@@ -37,12 +37,11 @@ def get_text(img_path, mask_text_path, method, idx, x_pixel_to_split, side, save
     :return:
     """
 
-    text_boxes = bounding_boxes_detection(img_path, mask_text_path, method, True, idx, subpaintings)
-
     image = cv2.imread(img_path)
     mask = cv2.imread(mask_text_path + str(idx) + '.png')
 
     if x_pixel_to_split is not None:
+        text_boxes = bounding_boxes_detection(img_path, mask_text_path, method, False, True, idx)
         if side == "left":
             image = image[1:image.shape[0], 1:int(x_pixel_to_split)]
             mask = mask[1:mask.shape[0], 1:int(x_pixel_to_split)]
@@ -50,6 +49,9 @@ def get_text(img_path, mask_text_path, method, idx, x_pixel_to_split, side, save
         elif side == "right":
             image = image[1:image.shape[0], int(x_pixel_to_split):image.shape[1]]
             mask = mask[1:mask.shape[0], int(x_pixel_to_split):mask.shape[1]]
+    else:
+        text_boxes = bounding_boxes_detection(img_path, mask_text_path, method, False, False, idx)
+
 
     # cv2.imwrite(img_path.replace(".jpg", "_boxmask.png"), cv2.resize(mask_image,(1000,1000)))
     
