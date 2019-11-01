@@ -227,7 +227,7 @@ def evaluate_mask(annotation_mask, result_mask, idx):
     return mask_evaluation(annotation_mask, result_mask, idx)
 
 
-def detect_bounding_boxes(path, mask_set_path, method, save_masks, idx):
+def detect_bounding_boxes(path, mask_set_path, method, save_masks, subpaintings, idx):
     """
     This function detects the bounding boxes of the text in all the images of a specific folder
 
@@ -235,6 +235,7 @@ def detect_bounding_boxes(path, mask_set_path, method, save_masks, idx):
     :param mask_set_path: path where the masks need to be saved
     :param method: 1 for color segmentation, 2 for morphology operations, 3 for neural network
     :param save_masks: boolean indicating if the masks need to be saved
+    :param subpaintings: compute if there are one or two subpaintings in the image: False for 1, True for 2
     :param idx: int indicating the index of the image
     :return: list of bounding boxes from first image to last image. Each image contains a maximum of 2 bounding boxes.
     
@@ -245,7 +246,7 @@ def detect_bounding_boxes(path, mask_set_path, method, save_masks, idx):
         [lowest_pixel_x, lowest_pixel_y, highest_pixel_x, highest_pixel_y] 
     """
 
-    return bounding_boxes_detection(path, mask_set_path, method, save_masks, idx)
+    return bounding_boxes_detection(path, mask_set_path, method, save_masks, subpaintings, idx)
 
 
 def evaluate_text(GT_bounding_boxes, result_bounding_boxes):

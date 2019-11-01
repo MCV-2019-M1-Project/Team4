@@ -9,7 +9,7 @@ import time
 from imutils.object_detection import non_max_suppression
 
 
-def bounding_boxes_detection(image_path, mask_set_path, method, save_masks, idx):
+def bounding_boxes_detection(image_path, mask_set_path, method, save_masks, subpaintings, idx):
     """
     This function detects the bounding boxes of the text in all the images of a specific folder
 
@@ -17,6 +17,7 @@ def bounding_boxes_detection(image_path, mask_set_path, method, save_masks, idx)
     :param mask_set_path: path where the masks will be saved
     :param method: 1 for color segmentation, 2 for morphology operations, 3 for neural network
     :param save_masks: bool indicating if the masks need to be saved
+    :param subpaintings: compute if there are one or two subpaintings in the image: False for 1, True for 2
     :param idx: int containing the index of the image
     :return: list of bounding boxes from first image to last image. Each image contains a maximum of 2 bounding boxes.
 
@@ -195,6 +196,13 @@ def bounding_boxes_detection(image_path, mask_set_path, method, save_masks, idx)
             # boxes
             bounding_boxes = non_max_suppression(np.array(rects), probs=confidences)
 
+        # merge closed bounding boxes
+        for idx1, box1 in enumerate(bounding_boxes):
+            for idx2, box2 in enumerate(bounding_boxes):
+                if (abs(box1[3] - box2[3]) < 10) and (abs(box1[0] - box2[2]) < 30 or abs(box1[2] - box2[0]) < 30):
+                    bounding_boxes[idx1] = [min(box1[0], box2[0]), min(box1[1], box2[1]), max(box1[2], box2[2]), max(box1[3], box2[3])]
+                    bounding_boxes[idx2] = [min(box1[0], box2[0]), min(box1[1], box2[1]), max(box1[2], box2[2]), max(box1[3], box2[3])]
+
         # loop over the bounding boxes
         for (startX, startY, endX, endY) in bounding_boxes:
             # scale the bounding box coordinates based on the respective
@@ -210,7 +218,7 @@ def bounding_boxes_detection(image_path, mask_set_path, method, save_masks, idx)
             cv2.rectangle(orig, (startX, startY), (endX, endY), (0, 255, 0), 2)
             # box = [startX, startY, endX, endY]
             # bounding_boxes.append(box)
-            text_mask[startY : endY, (startX - int(0.05 * startX)) : (endX  + int(0.05 * endX))] = 255
+            text_mask[startY - 5 : endY + 5, startX - 5  : endX + 5] = 255
 
 
     #------------------------------   FINDING AND CHOOSING CONTOURS OF THE BINARY MASK   ---------------------------------------
@@ -221,13 +229,14 @@ def bounding_boxes_detection(image_path, mask_set_path, method, save_masks, idx)
     # Initialize parameters
     largest_area, second_largest_area, x_box_1, y_box_1, w_box_1, h_box_1, x_box_2, y_box_2, w_box_2, h_box_2 = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     image_width = text_mask.shape[0]
+    image_area = text_mask.shape[0] * text_mask.shape[1]
 
     # From all the contours found, pick only the ones with rectangular shape and large area
     for cnt in contours:
         x, y, w, h = cv2.boundingRect(cnt)
         area = cv2.contourArea(cnt)
 
-        if (w / h > 3) & (w / h < 12) & (w > (0.1 * image_width)) & (area > second_largest_area):
+        if (w / h > 2.5) & (w / h < 15) & (w > (0.1 * image_width)) & (area > second_largest_area) & (area < 0.1 * image_area):
 
             if area > largest_area:
                 x_box_2, y_box_2, w_box_2, h_box_2 = x_box_1, y_box_1, w_box_1, h_box_1
@@ -243,20 +252,22 @@ def bounding_boxes_detection(image_path, mask_set_path, method, save_masks, idx)
     # cv2.rectangle(image, (x_box_2, y_box_2), (x_box_2 + w_box_2 - 1, y_box_2 + h_box_2 - 1), 255, 2)
 
     # Append the corners of the bounding boxes to the boxes list
+    text_mask[:,:] = 0
 
-    if (x_box_2 == y_box_2 == 0) | (image_path == 'images/qsd1_w3_denoised/'):
+    if subpaintings == False:
         box = [[x_box_1, y_box_1, x_box_1 + w_box_1, y_box_1 + h_box_1]]
         boxes.append(box)
-    elif x_box_1 < x_box_2:
-        box = [[x_box_1, y_box_1, x_box_1 + w_box_1, y_box_1 + h_box_1], [x_box_2, y_box_2, x_box_2 + w_box_2, y_box_2 + h_box_2]]
-        boxes.append(box)
-    else:
-        box = [[x_box_2, y_box_2, x_box_2 + w_box_2, y_box_2 + h_box_2], [x_box_1, y_box_1, x_box_1 + w_box_1, y_box_1 + h_box_1]]
-        boxes.append(box)
+        text_mask[y_box_1 : (y_box_1 + h_box_1), x_box_1 : (x_box_1 + w_box_1)] = 255
 
-    text_mask[:,:] = 0
-    text_mask[y_box_1 : (y_box_1 + h_box_1), x_box_1 : (x_box_1 + w_box_1)] = 255
-    text_mask[y_box_2 : (y_box_2 + h_box_2), x_box_2 : (x_box_2 + w_box_2)] = 255
+    if subpaintings == True:
+        if x_box_1 < x_box_2:
+            box = [[x_box_1, y_box_1, x_box_1 + w_box_1, y_box_1 + h_box_1], [x_box_2, y_box_2, x_box_2 + w_box_2, y_box_2 + h_box_2]]
+            boxes.append(box)
+        else:
+            box = [[x_box_2, y_box_2, x_box_2 + w_box_2, y_box_2 + h_box_2], [x_box_1, y_box_1, x_box_1 + w_box_1, y_box_1 + h_box_1]]
+            boxes.append(box)
+        text_mask[y_box_1 : (y_box_1 + h_box_1), x_box_1 : (x_box_1 + w_box_1)] = 255
+        text_mask[y_box_2 : (y_box_2 + h_box_2), x_box_2 : (x_box_2 + w_box_2)] = 255
 
     if save_masks:
         cv2.imwrite(mask_set_path + str(idx) + '.png', text_mask)

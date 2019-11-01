@@ -159,25 +159,6 @@ if __name__ == '__main__':
         query_filenames = glob.glob(query_set_path + '/' + '*.jpg')
         query_filenames.sort()
 
-    # Detect bounding boxes for text (result_text) and compute IoU parameter
-    if text_removal == "True":
-        result_text = []
-        print("Detecting text in the images")
-        idx = 0
-        for image in query_filenames:
-            print("Getting text for query image " + str(idx))
-            result_text.extend(detect_bounding_boxes(image, mask_text_path, text_method, True, idx))
-            idx += 1
-
-        # Check if the text results need to be saved in a pickle file
-        if save_to_pickle_text:
-            print("Saving Results to Pickle File")
-            save_to_pickle_file(result_text, 'results/QST1/method2/text_boxes.pkl')
-
-        # Evaluation of the text Removal
-        if ground_truth_text_available:
-            IoU = evaluate_text(GT_text, result_text)
-            print("Intersection over Union: ", str(IoU))
 
     # Get query images histograms
     print("Getting Query Features")
@@ -185,6 +166,8 @@ if __name__ == '__main__':
     masks = {}
     masks_evaluation = {}
     number_query_elements = len(query_filenames)
+    result_text = []
+
 
     # Check the data structures needed to store the features
     if histogram_descriptors:
@@ -209,8 +192,15 @@ if __name__ == '__main__':
     for query_image in query_filenames:
         print("Getting Features for Query Image " + str(idx))
         if text_removal and not multiple_subimages:
+                        
+            # Get background masks
             masks[idx] = get_mask(query_image, masks_path, idx)
-            masks_evaluation[idx] = get_mask(query_image, masks_path, idx)
+            masks_evaluation[idx] = get_mask(query_image, masks_path, idx)    
+            
+            # Detect bounding boxes for text (result_text) and get the masks with text
+            print("Getting text for query image " + str(idx))
+            result_text.extend(detect_bounding_boxes(query_image, mask_text_path, text_method, True, False, idx))
+
             text_mask = masks[idx]
             text_mask[result_text[idx][0][1]:result_text[idx][0][3], result_text[idx][0][0]:result_text[idx][0][2]] = 0
                 
@@ -226,14 +216,22 @@ if __name__ == '__main__':
 
         elif text_removal and multiple_subimages:
 
-            # Get image mask
+            # Get background masks
             masks[idx] = get_mask(query_image, masks_path, idx)
-            masks_evaluation[idx] = get_mask(query_image, masks_path, idx)
-            text_mask = masks[idx]
-            for result_index in range(0, len(result_text[idx])):
-                text_mask[result_text[idx][result_index][1]:result_text[idx][result_index][3], result_text[idx][result_index][0]:result_text[idx][result_index][2]] = 0
-
+            masks_evaluation[idx] = get_mask(query_image, masks_path, idx)  
             output = paintings_detection(query_image, masks_evaluation[idx])
+
+            # Detect bounding boxes for text (result_text) and get the masks with text
+            print("Getting text for query image " + str(idx))
+            if output > 0:
+                result_text.extend(detect_bounding_boxes(query_image, mask_text_path, text_method, True, True, idx))
+            else:
+                result_text.extend(detect_bounding_boxes(query_image, mask_text_path, text_method, True, False, idx))
+
+            # Get image mask
+            text_mask = masks[idx]
+            text_mask[result_text[idx][0][1]:result_text[idx][0][3], result_text[idx][0][0]:result_text[idx][0][2]] = 0
+
             if output > 0:
                 number_subimages[query_features_counter] = 2
                 number_subimages[query_features_counter + 1] = 0
@@ -303,6 +301,16 @@ if __name__ == '__main__':
                 query_ocrs[idx] = get_text(query_image, 'text/text_masks/', text_method, idx, None, None, True)
 
         idx += 1
+
+    # Check if the text results need to be saved in a pickle file
+    if save_to_pickle_text:
+        print("Saving Results to Pickle File")
+        save_to_pickle_file(result_text, 'results/QST1/method2/text_boxes.pkl')
+
+    # Evaluation of the text Removal
+    if ground_truth_text_available:
+        IoU = evaluate_text(GT_text, result_text)
+        print("Intersection over Union: ", str(IoU))
 
     # Compute similarities to museum images for each image
     if multiple_subimages:
