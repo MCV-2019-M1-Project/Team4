@@ -14,8 +14,8 @@ def extract_text(cropped_image_path, idx, to_save):
     :return:
     """
     # pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
-    text = pytesseract.image_to_string(cropped_image_path,lang='eng', config='--psm 10')
-
+    text = pytesseract.image_to_string(cropped_image_path, config='-l eng --oem 1 --psm 3')
+    #import pdb; pdb.set_trace()
     if to_save:
         with open('text/text_' + str(idx) + '.txt', 'w+') as file:
             file.writelines(text)
