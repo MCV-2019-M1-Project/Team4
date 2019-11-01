@@ -14,7 +14,7 @@ def extract_text(cropped_image_path, idx, to_save):
     :return:
     """
     # pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
-    text = pytesseract.image_to_string(cropped_image_path)
+    text = pytesseract.image_to_string(cropped_image_path,lang='eng', config='--psm 10')
 
     if to_save:
         with open('text/text_' + str(idx) + '.txt', 'w+') as file:
@@ -24,7 +24,7 @@ def extract_text(cropped_image_path, idx, to_save):
     return text
 
 
-def get_text(img_path, mask_text_path, method, idx, x_pixel_to_split, side, save_text):
+def get_text(img_path, mask_text_path, method, idx, x_pixel_to_split, side, save_text, subpaintings):
     """
     This function returns the detected text after recognition
     :param img_path:
@@ -37,7 +37,7 @@ def get_text(img_path, mask_text_path, method, idx, x_pixel_to_split, side, save
     :return:
     """
 
-    text_boxes = bounding_boxes_detection(img_path, mask_text_path, method, True, idx)
+    text_boxes = bounding_boxes_detection(img_path, mask_text_path, method, True, idx, subpaintings)
 
     image = cv2.imread(img_path)
     mask = cv2.imread(mask_text_path + str(idx) + '.png')

@@ -64,10 +64,10 @@ if __name__ == '__main__':
     level = 3
 
     # Text parameters
-    text_descriptors = False
+    text_descriptors = True
 
     # Local descriptors parameters
-    local_descriptors = True
+    local_descriptors = False
     local_method = "sift" # sift, surf, root_sift, orb, fast-daisy, brisk
     matching_method = "brute_force" # brute_force, flann, nmslib
     local_metric = "hamming2" # l1, l2, hamming, hamming2
@@ -276,10 +276,9 @@ if __name__ == '__main__':
                                                                                           output, 'right')
 
                 if text_descriptors:
-                    query_ocrs[query_features_counter] = get_text(query_image, 'text/text_masks/', text_method, idx,
-                                                                  output, 'left', True)
+                    query_ocrs[query_features_counter] = get_text(query_image, 'text/text_masks/', text_method, idx, output, 'left', True, 2)
                     query_ocrs[query_features_counter + 1] = get_text(query_image, 'text/text_masks/', text_method, idx,
-                                                                  output, 'right', True)
+                                                                  output, 'right', True, 2)
 
                 if local_descriptors:
                     query_local_descriptors[query_features_counter] = extract_local_descriptors(query_image, text_mask, 
