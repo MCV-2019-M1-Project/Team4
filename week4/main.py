@@ -300,7 +300,7 @@ if __name__ == '__main__':
 
                 if text_descriptors:
                     query_ocrs[query_features_counter] = get_text(query_image, 'text/text_masks/', text_method, idx, None, 
-                                                                  None, True, 1)
+                                                                  None, True)
 
                 if local_descriptors:
                     query_local_descriptors[query_features_counter] = extract_local_descriptors(query_image, text_mask, 
