@@ -1,3 +1,6 @@
+import numpy as np
+import cv2
+# import nmslib
 
 def _filter_matches(matches, ratio=0.5):
     good = []
@@ -7,7 +10,7 @@ def _filter_matches(matches, ratio=0.5):
     return good
 
 
-def _compute_similarity_score(matches, matches_thresh=10, dist_thresh=920):
+def _compute_similarity_score(matches, matches_thresh, dist_thresh=920):
     m = len(matches)
     d = np.mean([match.distance for match in matches]) if m > 0 else np.inf
     if m < matches_thresh or d > dist_thresh:
@@ -16,7 +19,7 @@ def _compute_similarity_score(matches, matches_thresh=10, dist_thresh=920):
         return m / d
 
 
-def bf_match(query_des, image_des, distance_metric):
+def bf_match(query_des, image_des, distance_metric, threshold):
     norm_type = {
         'l1': cv2.NORM_L1,
         'l2': cv2.NORM_L2,
@@ -28,12 +31,12 @@ def bf_match(query_des, image_des, distance_metric):
     # For each image descriptor, find best k matches among query descriptors
     matches = bf.knnMatch(image_des, query_des, k=2)
     good = _filter_matches(matches)
-    score = _compute_similarity_score(good)
+    score = _compute_similarity_score(good, threshold)
 
     return score
 
 
-def flann_match(query_des, image_des, distance_metric):
+def flann_match(query_des, image_des, distance_metric, threshold):
     index_params = dict(algorithm=0, trees=5)
     search_params = dict(checks=50)
     flann = cv2.FlannBasedMatcher(index_params, search_params)
@@ -41,12 +44,12 @@ def flann_match(query_des, image_des, distance_metric):
     # For each image descriptor, find best k matches among query descriptors
     matches = flann.knnMatch(image_des, query_des, k=2)
     good = _filter_matches(matches)
-    score = _compute_similarity_score(good)
+    score = _compute_similarity_score(good, threshold)
 
     return score
 
 
-def nmslib_match(query_des, image_des, distance_metric):
+def nmslib_match(query_des, image_des, distance_metric, threshold):
     index = nmslib.init(method='hnsw', space='l2sqr_sift', data_type=nmslib.DataType.DENSE_UINT8_VECTOR, dtype=nmslib.DistType.INT)
     index.addDataPointBatch(query_des.astype(np.uint8))
     index.createIndex({'M': 16, 'efConstruction': 100})
@@ -56,15 +59,15 @@ def nmslib_match(query_des, image_des, distance_metric):
     matches = index.knnQueryBatch(image_des.astype(np.uint8), k=2)
     matches = [[cv2.DMatch(query_idx, train_idx, distance) for train_idx, distance in zip(*match)] for query_idx, match in enumerate(matches)]
     good = _filter_matches(matches)
-    score = _compute_similarity_score(good)
+    score = _compute_similarity_score(good, threshold)
 
     return score
 
 
-def match_descriptors(query_des, image_des, method, distance_metric):
+def match_descriptors(query_des, image_des, method, distance_metric, threshold):
     func = {
         'brute_force': bf_match,
         'flann': flann_match,
         'nmslib': nmslib_match
     }
-    return func[method](query_des, image_des, distance_metric)
+    return func[method](query_des, image_des, distance_metric, threshold)

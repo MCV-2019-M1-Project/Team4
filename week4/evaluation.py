@@ -5,6 +5,7 @@ from histogram import *
 from mask import *
 from text import *
 from compute_text_distances import *
+from matching_distances import *
 import glob
 import ml_metrics as metrics
 import numpy as np
@@ -86,8 +87,10 @@ def calculate_text_distance(str_1, str_2, method):
         raise Exception("Wrong distance method")
 
 
-def calculate_similarities(color_base, metric, dimension, query_hists, query_textures, query_ocrs, museum_hists,
-                           museum_textures, museum_ocrs, num_query_elements, num_museum_elements):
+def calculate_similarities(color_base, metric, dimension, query_hists, query_textures, query_ocrs, query_local_descriptors, 
+                           museum_hists, museum_textures, museum_ocrs, museum_local_descriptors, num_query_elements, num_museum_elements,
+                           matching_method, local_metric, threshold):
+
     """
     This function calculates the similarity between each image of the query set with all the museum database images,
     and then sorts out the museum images by distance in ascending order.
@@ -100,9 +103,14 @@ def calculate_similarities(color_base, metric, dimension, query_hists, query_tex
     :param query_hists: Dict containing the histograms of each of the images from the query set
     :param query_textures:
     :param query_ocrs:
+    :param query_local_descriptors:
     :param museum_hists: Dict containing the histograms of each of the images from the museum database
     :param museum_textures:
     :param museum_ocrs:
+    :param museum_local_descriptors
+    :param matching_method: for local descriptors
+    :param local metric: for local descriptors
+    :param threshold: for local descriptors
     :return:
     """
 
@@ -123,19 +131,24 @@ def calculate_similarities(color_base, metric, dimension, query_hists, query_tex
 
             if query_ocrs is not None:
                 distance += (1 - calculate_text_distance(query_ocrs[idx_query], museum_ocrs[idx_museum], 'levenshtein'))
-                print(distance)
+
+            if query_local_descriptors is not None:
+                distance = - match_descriptors(query_local_descriptors[idx_query], museum_local_descriptors[idx_museum], matching_method, local_metric, threshold)
 
             query_element_distances_list.append([idx_museum, distance])
 
         # Sort the values and remove the distances
-        query_element_distances_list.sort(key=lambda x: x[1])
-        aux_list = []
-        for pair in query_element_distances_list:
-            del (pair[1])
-            aux_list.append(pair[0])
-
-        predictions.append(aux_list)
-
+        # d = [item[1] for item in query_element_distances_list]
+        if all(item[1] == 0 for item in query_element_distances_list):
+            predictions.append([-1])
+        else:
+            query_element_distances_list.sort(key=lambda x: x[1])
+            aux_list = []
+            for pair in query_element_distances_list:
+                del (pair[1])
+                aux_list.append(pair[0])
+            predictions.append(aux_list)
+    
     return predictions
 
 
@@ -171,22 +184,35 @@ def get_top_k(predictions, k, number_subimages_dic):
     predictions_to_return = []
     if number_subimages_dic is None:
         for element in predictions:
-            del(element[k:])
-            predictions_to_return.append(element)
+            if element == -1:
+                predictions_to_return.append(element)
+            else:
+                del(element[k:])
+                predictions_to_return.append(element)
     else:
         predictions_idx = 0
         for idx, number_subimages in number_subimages_dic.items():
             if number_subimages == 0:
                 continue
             if number_subimages == 1:
-                del(predictions[idx][k:])
-                predictions_to_return.append(predictions[idx])
+                if predictions[idx] == -1:
+                    predictions_to_return.append(predictions[idx])
+                else:
+                    del(predictions[idx][k:])
+                    predictions_to_return.append(predictions[idx])
             else:
                 aux_list = []
-                del (predictions[predictions_idx][k:])
-                aux_list.extend(predictions[predictions_idx])
-                del (predictions[predictions_idx + 1][k:])
-                aux_list.extend(predictions[predictions_idx + 1])
+                if predictions[predictions_idx] == -1:
+                    aux_list.extend(predictions[predictions_idx + 1])
+                else:
+                    del (predictions[predictions_idx][k:])
+                    aux_list.extend(predictions[predictions_idx])
+                if predictions[predictions_idx + 1] == -1:
+                    aux_list.extend(predictions[predictions_idx + 1])
+                else:
+                    del (predictions[predictions_idx + 1][k:])
+                    aux_list.extend(predictions[predictions_idx + 1])
+
                 predictions_to_return.append(aux_list)
 
             predictions_idx += 1

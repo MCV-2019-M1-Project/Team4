@@ -10,6 +10,8 @@ from mask import *
 from texture_descriptors import *
 from text_ocr import *
 from compute_text_distances import *
+from local_descriptors import *
+from matching_distances import *
 
 # PyCharm Imports
 # from week3.evaluation import *
@@ -50,12 +52,12 @@ if __name__ == '__main__':
     use_denoised_images = True
 
     # Texture parameters
-    texture_descriptors = True
+    texture_descriptors = False
     texture_descriptor_level = 3
     texture_method = "LBP"
 
     # Histogram parameters
-    histogram_descriptors = True
+    histogram_descriptors = False
     color_base = "LAB"
     dimension = '2D'
     metric = "bhattacharya_distance"
@@ -63,6 +65,13 @@ if __name__ == '__main__':
 
     # Text parameters
     text_descriptors = False
+
+    # Local descriptors parameters
+    local_descriptors = True
+    local_method = "sift" # sift, surf, root_sift, orb, fast-daisy, brisk
+    matching_method = "brute_force" # brute_force, flann, nmslib
+    local_metric = "hamming2" # l1, l2, hamming, hamming2
+    matches_threshold = 5
 
     if query_set_path == "images/qsd2_w2" or query_set_path == "images/qsd2_w3" or query_set_path == "images/qsd1_w4":
         multiple_subimages = True
@@ -102,6 +111,10 @@ if __name__ == '__main__':
         museum_text_gt_filenames.sort()
     else:
         museum_text_gt = None
+    if local_descriptors:
+        museum_local_descriptors = {}
+    else:
+        museum_local_descriptors = None
 
     idx = 0
     for museum_image in museum_filenames:
@@ -128,6 +141,10 @@ if __name__ == '__main__':
                     else:
                         line = line.split(',')
                         museum_text_gt[idx] = line[0][2:-1]
+
+        # Get local descriptor for museum image
+        if local_descriptors:
+            museum_local_descriptors[idx] = extract_local_descriptors(museum_image, None, local_method, None, None)
 
         idx += 1
 
@@ -183,6 +200,10 @@ if __name__ == '__main__':
         query_text_gt = {}
     else:
         query_ocrs = None
+    if local_descriptors:
+        query_local_descriptors = {}
+    else:
+        query_local_descriptors = None
 
     if text_removal and multiple_subimages:
         number_subimages = {}
@@ -213,6 +234,9 @@ if __name__ == '__main__':
             if texture_descriptors:
                 query_textures[idx] = get_image_texture_descriptor(query_image, texture_method, texture_descriptor_level,
                                                                    text_mask, None, None)
+
+            # Get local descriptor for the query image
+                query_local_descriptors[idx] = extract_local_descriptors(query_image, text_mask, local_method, None, None)
 
         elif text_removal and multiple_subimages:
 
@@ -256,25 +280,34 @@ if __name__ == '__main__':
                                                                   output, 'left', True)
                     query_ocrs[query_features_counter + 1] = get_text(query_image, 'text/text_masks/', text_method, idx,
                                                                   output, 'right', True)
+
+                if local_descriptors:
+                    query_local_descriptors[query_features_counter] = extract_local_descriptors(query_image, text_mask, 
+                                                                                            local_method, output, 'left')
+                    query_local_descriptors[query_features_counter + 1] = extract_local_descriptors(query_image, text_mask, 
+                                                                                            local_method, output, 'right')                                                                                            
                 
                 query_features_counter += 2
                 
             else:
                 number_subimages[query_features_counter] = 1
                 if histogram_descriptors:
-                    query_histograms[query_features_counter] = calculate_image_histogram(query_image, None, color_base,
+                    query_histograms[query_features_counter] = calculate_image_histogram(query_image, text_mask, color_base,
                                                                                          dimension, level, None, None)
 
                 if texture_descriptors:
                     query_textures[query_features_counter] = get_image_texture_descriptor(query_image, texture_method,
-                                                                                         texture_descriptor_level, None, None, None)
+                                                                                         texture_descriptor_level, text_mask, None, None)
 
                 if text_descriptors:
                     query_ocrs[query_features_counter] = get_text(query_image, 'text/text_masks/', text_method, idx, None, 
                                                                   None, True)
+
+                if local_descriptors:
+                    query_local_descriptors[query_features_counter] = extract_local_descriptors(query_image, text_mask, 
+                                                                                            local_method, None, None)
                 
                 query_features_counter += 1
-
 
         elif background_removal:
             masks[idx] = get_mask(query_image, masks_path, idx)
@@ -288,6 +321,11 @@ if __name__ == '__main__':
 
             if text_descriptors:
                 query_ocrs[idx] = get_text(query_image, 'text/text_masks/', text_method, idx, None, None, True)
+
+            if local_descriptors:
+                query_local_descriptors = extract_local_descriptors(query_image, masks[idx], 
+                                                                    local_method, None, None)
+
         else:
             if histogram_descriptors:
                 query_histograms[idx] = calculate_image_histogram(query_image, None, color_base, dimension, level, None,
@@ -299,6 +337,10 @@ if __name__ == '__main__':
 
             if text_descriptors:
                 query_ocrs[idx] = get_text(query_image, 'text/text_masks/', text_method, idx, None, None, True)
+
+            if local_descriptors:
+                query_local_descriptors[idx] = extract_local_descriptors(query_image, None, 
+                                                                        local_method, None, None)
 
         idx += 1
 
@@ -317,14 +359,16 @@ if __name__ == '__main__':
         print("Getting Similarities for Query Set2 and Museum")
         print("Number of paintings in query set when there are subpaintings: ", query_features_counter)
         predictions = calculate_similarities(color_base, metric, dimension, query_histograms, query_textures,
-                                             query_ocrs, museum_histograms, museum_textures, museum_text_gt,
-                                             query_features_counter, number_museum_elements)
+                                             query_ocrs, query_local_descriptors, museum_histograms, museum_textures, museum_text_gt,
+                                             museum_local_descriptors, query_features_counter, number_museum_elements, 
+                                             matching_method, local_metric, matches_threshold)
         top_k = get_top_k(predictions, k, number_subimages)
     else:
         print("Getting Predictions")
         predictions = calculate_similarities(color_base, metric, dimension, query_histograms, query_textures,
-                                             query_ocrs, museum_histograms, museum_textures, museum_text_gt,
-                                             number_query_elements, number_museum_elements)
+                                             query_ocrs, query_local_descriptors, museum_histograms, museum_textures, museum_text_gt,
+                                             museum_local_descriptors, number_query_elements, number_museum_elements,
+                                             matching_method, local_metric, matches_threshold)
         top_k = get_top_k(predictions, k, None)
 
     if ground_truth_available:
