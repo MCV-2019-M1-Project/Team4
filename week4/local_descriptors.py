@@ -115,7 +115,7 @@ def daisy_descriptors(image, mask):
     keypoints = detector.detect(grayscale_image ,mask)
 
     daisy = cv2.xfeatures2d.DAISY_create()
-    descriptors = daisy.compute(grayscale_image, keypoints)
+    _, descriptors = daisy.compute(grayscale_image, keypoints)
     
     return descriptors
 

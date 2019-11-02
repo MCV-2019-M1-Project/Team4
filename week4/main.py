@@ -69,10 +69,10 @@ if __name__ == '__main__':
 
     # Local descriptors parameters
     local_descriptors = True
-    local_method = "orb" # sift, surf, root_sift, orb, fast-daisy, brisk
+    local_method = "brisk" # sift, surf, root_sift, orb, fast-daisy, brisk
     matching_method = "brute_force" # brute_force, flann, nmslib
-    local_metric = "l1" # l1, l2, hamming, hamming2
-    matches_threshold = 4
+    local_metric = "l2" # l1, l2, hamming, hamming2
+    matches_threshold = 3
 
     if query_set_path == "images/qsd2_w2" or query_set_path == "images/qsd2_w3" or query_set_path == "images/qsd1_w4":
         multiple_subimages = True
