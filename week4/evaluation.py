@@ -150,7 +150,7 @@ def calculate_similarities(color_base, metric, dimension, query_hists, query_tex
         query_element_distances_list.sort(key=lambda x: x[1])
         aux_list = []
         for pair in query_element_distances_list:
-            if pair[1] == 0:
+            if pair[1] == 0 and query_local_descriptors is not None:
                 pair[0] = -1
             del (pair[1])
             aux_list.append(pair[0])

@@ -5,21 +5,21 @@ Options:
 """
 
 # VSCode imports
-#from evaluation import *
-#from mask import *
-#from texture_descriptors import *
-#from text_ocr import *
-#from compute_text_distances import *
-#from local_descriptors import *
-#from matching_distances import *
+from evaluation import *
+from mask import *
+from texture_descriptors import *
+from text_ocr import *
+from compute_text_distances import *
+from local_descriptors import *
+from matching_distances import *
 
 # PyCharm Imports
-from week4.evaluation import *
-from week4.mask import *
-from week4.texture_descriptors import *
-from week4.text_ocr import *
-from week4.compute_text_distances import *
-from week4.local_descriptors import extract_local_descriptors
+# from week4.evaluation import *
+# from week4.mask import *
+# from week4.texture_descriptors import *
+# from week4.text_ocr import *
+# from week4.compute_text_distances import *
+# from week4.local_descriptors import extract_local_descriptors
 
 import sys
 import glob
@@ -65,10 +65,10 @@ if __name__ == '__main__':
     level = 3
 
     # Text parameters
-    text_descriptors = False
+    text_descriptors = True
 
     # Local descriptors parameters
-    local_descriptors = True
+    local_descriptors = False
     local_method = "brisk" # sift, surf, root_sift, orb, fast-daisy, brisk
     matching_method = "brute_force" # brute_force, flann, nmslib
     local_metric = "l2" # l1, l2, hamming, hamming2
@@ -110,6 +110,9 @@ if __name__ == '__main__':
         museum_text_gt = {}
         museum_text_gt_filenames = glob.glob('text/bbdd_text/*.txt')
         museum_text_gt_filenames.sort()
+        mask_text_filenames = glob.glob('text/' + '*.txt')
+        for txt_file in mask_text_filenames:
+            os.remove(txt_file)
     else:
         museum_text_gt = None
     if local_descriptors:
@@ -276,8 +279,8 @@ if __name__ == '__main__':
                                                                                           output, 'right')
 
                 if text_descriptors:
-                    query_ocrs[query_features_counter] = get_text(query_image, 'text/text_masks/', text_method, idx, output, 'left', True)
-                    query_ocrs[query_features_counter + 1] = get_text(query_image, 'text/text_masks/', text_method, idx,
+                    query_ocrs[query_features_counter] = get_text(query_image, mask_text_path, text_method, idx, output, 'left', True)
+                    query_ocrs[query_features_counter + 1] = get_text(query_image, mask_text_path, text_method, idx,
                                                                   output, 'right', True)
 
                 if local_descriptors:
@@ -300,7 +303,7 @@ if __name__ == '__main__':
                                                                                           text_mask, None, None)
 
                 if text_descriptors:
-                    query_ocrs[query_features_counter] = get_text(query_image, 'text/text_masks/', text_method, idx, None, 
+                    query_ocrs[query_features_counter] = get_text(query_image, mask_text_path, text_method, idx, None, 
                                                                   None, True)
 
                 if local_descriptors:
@@ -320,7 +323,7 @@ if __name__ == '__main__':
                                                                     texture_descriptor_level, masks[idx])
 
             if text_descriptors:
-                query_ocrs[idx] = get_text(query_image, 'text/text_masks/', text_method, idx, None, None, True)
+                query_ocrs[idx] = get_text(query_image, mask_text_path, text_method, idx, None, None, True)
 
             if local_descriptors:
                 query_local_descriptors = extract_local_descriptors(query_image, masks[idx], 
@@ -336,7 +339,7 @@ if __name__ == '__main__':
                                                                    texture_descriptor_level, None)
 
             if text_descriptors:
-                query_ocrs[idx] = get_text(query_image, 'text/text_masks/', text_method, idx, None, None, True)
+                query_ocrs[idx] = get_text(query_image, mask_text_path, text_method, idx, None, None, True)
 
             if local_descriptors:
                 query_local_descriptors[idx] = extract_local_descriptors(query_image, None, 
