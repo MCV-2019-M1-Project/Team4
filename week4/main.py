@@ -65,14 +65,14 @@ if __name__ == '__main__':
     level = 3
 
     # Text parameters
-    text_descriptors = True
+    text_descriptors = False
 
     # Local descriptors parameters
-    local_descriptors = False
-    local_method = "sift" # sift, surf, root_sift, orb, fast-daisy, brisk
+    local_descriptors = True
+    local_method = "orb" # sift, surf, root_sift, orb, fast-daisy, brisk
     matching_method = "brute_force" # brute_force, flann, nmslib
-    local_metric = "hamming2" # l1, l2, hamming, hamming2
-    matches_threshold = 5
+    local_metric = "l1" # l1, l2, hamming, hamming2
+    matches_threshold = 4
 
     if query_set_path == "images/qsd2_w2" or query_set_path == "images/qsd2_w3" or query_set_path == "images/qsd1_w4":
         multiple_subimages = True
@@ -166,9 +166,8 @@ if __name__ == '__main__':
     
     # Use denoised images or not
     if use_denoised_images:
-        print("GAS")
         # Get query images filenames
-        query_set_path = query_set_path + '_denoised/'
+        query_set_path = query_set_path + '_denoised_1/'
         query_filenames = glob.glob(query_set_path + '*.jpg')
         query_filenames.sort()
     else:
@@ -260,7 +259,6 @@ if __name__ == '__main__':
 
             if output > 0:
                 number_subimages[query_features_counter] = 2
-                number_subimages[query_features_counter + 1] = 0
                 if histogram_descriptors:
                     query_histograms[query_features_counter] = calculate_image_histogram(query_image, text_mask,
                                                                                          color_base, dimension, level,
@@ -342,7 +340,7 @@ if __name__ == '__main__':
 
             if local_descriptors:
                 query_local_descriptors[idx] = extract_local_descriptors(query_image, None, 
-                                                                        local_method, None, None)
+                                                                         local_method, None, None)
 
         idx += 1
 
@@ -396,7 +394,7 @@ if __name__ == '__main__':
         mean_recall = []
         mean_f1score = []
         for idx, mask in masks_evaluation.items():  # For each pair of masks, obtain the recall, precision and f1score metrics
-            recall, precision, f1score = evaluate_mask(cv2.imread((GT_masks[idx]), cv2.COLOR_BGR2GRAY), 
+            recall, precision, f1score = evaluate_mask(cv2.imread((GT_masks[idx]), cv2.COLOR_BGR2GRAY),
                                                         mask, idx)
             mean_recall.append(recall)
             mean_precision.append(precision)

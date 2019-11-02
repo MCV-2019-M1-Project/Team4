@@ -119,6 +119,7 @@ def daisy_descriptors(image, mask):
     
     return descriptors
 
+
 def brisk_descriptors(image, mask):
     """
     Extract descriptors from keypoints using the Daisy method.

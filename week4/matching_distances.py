@@ -1,6 +1,8 @@
+import nmslib as nmslib
 import numpy as np
 import cv2
 # import nmslib
+
 
 def _filter_matches(matches, ratio=0.5):
     good = []
