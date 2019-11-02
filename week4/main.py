@@ -5,20 +5,21 @@ Options:
 """
 
 # VSCode imports
-from evaluation import *
-from mask import *
-from texture_descriptors import *
-from text_ocr import *
-from compute_text_distances import *
-from local_descriptors import *
-from matching_distances import *
+#from evaluation import *
+#from mask import *
+#from texture_descriptors import *
+#from text_ocr import *
+#from compute_text_distances import *
+#from local_descriptors import *
+#from matching_distances import *
 
 # PyCharm Imports
-# from week3.evaluation import *
-# from week3.mask import *
-# from week3.texture_descriptors import *
-# from week3.text_ocr import *
-# from week3.compute_text_distances import *
+from week4.evaluation import *
+from week4.mask import *
+from week4.texture_descriptors import *
+from week4.text_ocr import *
+from week4.compute_text_distances import *
+from week4.local_descriptors import extract_local_descriptors
 
 import sys
 import glob
@@ -236,6 +237,7 @@ if __name__ == '__main__':
                                                                    text_mask, None, None)
 
             # Get local descriptor for the query image
+            if local_descriptors:
                 query_local_descriptors[idx] = extract_local_descriptors(query_image, text_mask, local_method, None, None)
 
         elif text_removal and multiple_subimages:
@@ -296,7 +298,8 @@ if __name__ == '__main__':
 
                 if texture_descriptors:
                     query_textures[query_features_counter] = get_image_texture_descriptor(query_image, texture_method,
-                                                                                         texture_descriptor_level, text_mask, None, None)
+                                                                                          texture_descriptor_level,
+                                                                                          text_mask, None, None)
 
                 if text_descriptors:
                     query_ocrs[query_features_counter] = get_text(query_image, 'text/text_masks/', text_method, idx, None, 

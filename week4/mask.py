@@ -1,7 +1,6 @@
 import numpy as np
 import cv2
 from skimage import feature, img_as_ubyte
-from evaluation import *
 
 # Temp imports
 import glob
@@ -176,9 +175,6 @@ def mask_creation_v2(image_path, path, idx):
     mask = cv2.dilate(mask, None, iterations=2)
     mask = cv2.erode(mask, None, iterations=9)
 
-    image_masked = cv2.bitwise_and(image, image, mask=mask)
-    retval, thresh = cv2.threshold(cv2.cvtColor(image_masked, cv2.COLOR_BGR2GRAY), 0, 255, cv2.THRESH_OTSU)
-
     cv2.imwrite('masks/' + str(idx).zfill(2) + "_mask.png", mask)
     return mask
 
@@ -197,7 +193,7 @@ if __name__ == '__main__':
         #masks[idx] = mask_creation_v3(query, 'masks/', idx)
         idx += 1
 
-    if True:
+    """if True:
         GT_mask = glob.glob('images/qsd1_w4/000*.png')  # Load maks from the ground truth
         GT_mask.sort()
         print(GT_mask)
@@ -215,4 +211,4 @@ if __name__ == '__main__':
 
         print('Recall: ' + str(np.array(mean_recall).mean()))
         print('Precision: ' + str(np.array(mean_precision).mean()))
-        print('F1 score: ' + str(np.array(mean_f1score).mean()))
+        print('F1 score: ' + str(np.array(mean_f1score).mean()))"""

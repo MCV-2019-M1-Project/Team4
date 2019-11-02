@@ -24,7 +24,7 @@ def sift_descriptors(image, mask):
         mask = cv2.resize(mask, (256, 256), interpolation=cv2.INTER_AREA)
 
     sift = cv2.xfeatures2d.SIFT_create()
-    keypoints, descriptors = sift.detectAndCompute(grayscale_image, None)
+    keypoints, descriptors = sift.detectAndCompute(grayscale_image, mask=mask)
 
     return descriptors
 
