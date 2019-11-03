@@ -63,7 +63,7 @@ def mask_creation(image, mask_path, image_index):
     # apply mask to find contours
     mask = np.uint8(mask)
 
-    contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    _, contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     # create new mask with the contours found
     mask_contours = cv2.fillPoly(mask, contours, [255, 255, 255])
@@ -155,9 +155,9 @@ def mask_creation_v2(image_path, path, idx):
     canny_image = cv2.Canny(image, canny_tresh1, canny_tresh2)
     canny_image = cv2.dilate(canny_image, None, iterations=7)
 
-    contours, _ = cv2.findContours(canny_image, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
+    _, contours, _ = cv2.findContours(canny_image, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
     contours_info = []
-
+    
     for contour in contours:
         contours_info.append((
             contour,

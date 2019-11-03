@@ -182,7 +182,7 @@ def harris_corner_subpixel_accuracy(image, mode):
     return [cv2.KeyPoint(corner[0], corner[1], 4) for corner in corners]
 
 
-def detect_keypoints(image, method, mode=None)
+def detect_keypoints(image, method, mode=None):
     detector = {
         'dog': difference_of_gaussian,
         'log': laplacian_of_gaussian,

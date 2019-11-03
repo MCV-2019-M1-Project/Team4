@@ -44,9 +44,9 @@ if __name__ == '__main__':
     # GT and results parameters
     save_to_pickle = False
     save_to_pickle_text = False
-    ground_truth_available = True
-    ground_truth_text_available = True
-    ground_truth_ocr_available = True
+    ground_truth_available = False
+    ground_truth_text_available = False
+    ground_truth_ocr_available = False
 
     # Denoise parameters
     execute_denoise_process = False
@@ -65,16 +65,16 @@ if __name__ == '__main__':
     level = 3
 
     # Text parameters
-    text_descriptors = True
+    text_descriptors = False
 
     # Local descriptors parameters
-    local_descriptors = False
-    local_method = "brisk" # sift, surf, root_sift, orb, fast-daisy, brisk
-    matching_method = "brute_force" # brute_force, flann, nmslib
+    local_descriptors = True
+    local_method = "sift" # sift, surf, root_sift, orb, fast-daisy, brisk
+    matching_method = "flann" # brute_force, flann, nmslib
     local_metric = "l2" # l1, l2, hamming, hamming2
-    matches_threshold = 3
+    matches_threshold = 5
 
-    if query_set_path == "images/qsd2_w2" or query_set_path == "images/qsd2_w3" or query_set_path == "images/qsd1_w4":
+    if query_set_path == "images/qsd2_w2" or query_set_path == "images/qsd2_w3" or query_set_path == "images/qsd1_w4" or query_set_path == "images/qst1_w4":
         multiple_subimages = True
     else:
         multiple_subimages = False
