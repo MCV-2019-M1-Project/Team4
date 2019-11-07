@@ -318,15 +318,15 @@ def remove_noise(test_set_path, query_path, query_image, GT, idx, PSNR):
     denoised_image = image
     kernel_max = 13
     kernel = 1
-    minimum = cv2.erode(image, np.ones((kernel,kernel), np.uint8) / kernel**2, iterations = 1)
-    maximum = cv2.dilate(image, np.ones((kernel,kernel), np.uint8) / kernel**2, iterations = 1)
+    minimum = cv2.erode(image, np.ones((kernel,kernel), np.uint8) / kernel**2, iterations=1)
+    maximum = cv2.dilate(image, np.ones((kernel,kernel), np.uint8) / kernel**2, iterations=1)
     median = cv2.medianBlur(image, kernel)
     
     while kernel <= kernel_max:
         kernel += 2
 
-        minimum = cv2.erode(denoised_image, np.ones((kernel,kernel), np.uint8) / kernel**2, iterations = 1)
-        maximum = cv2.dilate(denoised_image, np.ones((kernel,kernel), np.uint8) / kernel**2, iterations = 1)
+        minimum = cv2.erode(denoised_image, np.ones((kernel,kernel), np.uint8) / kernel**2, iterations=1)
+        maximum = cv2.dilate(denoised_image, np.ones((kernel,kernel), np.uint8) / kernel**2, iterations=1)
         median = cv2.medianBlur(denoised_image, kernel)
         print("kernel size: ", kernel)
         for nChannel in range(image.shape[2]):
