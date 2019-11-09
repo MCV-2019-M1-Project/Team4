@@ -1,4 +1,5 @@
 # import nmslib as nmslib
+import nmslib
 import numpy as np
 import cv2
 
