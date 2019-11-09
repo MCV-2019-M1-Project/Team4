@@ -5,21 +5,21 @@ Options:
 """
 
 # VSCode imports
-# from evaluation import *
-# from mask import *
-# from texture_descriptors import *
-# from text_ocr import *
-# from compute_text_distances import *
-# from local_descriptors import *
-# from matching_distances import *
-# from painting_finder import *
+from evaluation import *
+from mask import *
+from texture_descriptors import *
+from text_ocr import *
+from compute_text_distances import *
+from local_descriptors import *
+from matching_distances import *
+from painting_finder import *
 
 # PyCharm Imports
-from week5.evaluation import *
-from week5.texture_descriptors import *
-from week5.text_ocr import *
-from week5.local_descriptors import extract_local_descriptors
-from week5.painting_finder import *
+# from week5.evaluation import *
+# from week5.texture_descriptors import *
+# from week5.text_ocr import *
+# from week5.local_descriptors import extract_local_descriptors
+# from week5.painting_finder import *
 
 import sys
 import glob
@@ -59,17 +59,17 @@ if __name__ == '__main__':
     texture_method = "LBP"
 
     # Histogram parameters
-    histogram_descriptors = False
+    histogram_descriptors = True
     color_base = "LAB"
     dimension = '2D'
     metric = "bhattacharya_distance"
     level = 3
 
     # Text parameters
-    text_descriptors = False
+    text_descriptors = True
 
     # Local descriptors parameters
-    local_descriptors = False
+    local_descriptors = True
     local_method = "sift" # sift, surf, root_sift, orb, fast-daisy, brisk
     matching_method = "flann" # brute_force, flann, nmslib
     local_metric = "l2" # l1, l2, hamming, hamming2
@@ -341,7 +341,7 @@ if __name__ == '__main__':
         mean_recall = []
         mean_f1score = []
         for idx, mask in masks_evaluation.items():  # For each pair of masks, obtain the recall, precision and f1score metrics
-            recall, precision, f1score = evaluate_mask(cv2.imread((GT_masks[idx]), cv2.COLOR_BGR2GRAY), mask, idx)
+            recall, precision, f1score = evaluate_mask(cv2.cvtColor(cv2.imread(GT_masks[idx]), cv2.COLOR_BGR2GRAY), mask, idx)
             mean_recall.append(recall)
             mean_precision.append(precision)
             mean_f1score.append(f1score)

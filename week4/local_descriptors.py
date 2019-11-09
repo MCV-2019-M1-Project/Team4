@@ -26,6 +26,10 @@ def sift_descriptors(image, mask):
     sift = cv2.xfeatures2d.SIFT_create()
     keypoints, descriptors = sift.detectAndCompute(grayscale_image, mask=mask)
 
+    # image = cv2.drawKeypoints(grayscale_image,keypoints,image)
+
+    # cv2.imshow(image, image)
+
     return descriptors
 
 

@@ -42,7 +42,7 @@ if __name__ == '__main__':
     mask_text_path = 'text/text_masks/'
 
     # GT and results parameters
-    save_to_pickle = False
+    save_to_pickle = True
     save_to_pickle_text = False
     ground_truth_available = False
     ground_truth_text_available = False
@@ -170,7 +170,7 @@ if __name__ == '__main__':
     # Use denoised images or not
     if use_denoised_images:
         # Get query images filenames
-        query_set_path = query_set_path + '_denoised_1/'
+        query_set_path = query_set_path + '_denoised/'
         query_filenames = glob.glob(query_set_path + '*.jpg')
         query_filenames.sort()
     else:
@@ -382,27 +382,27 @@ if __name__ == '__main__':
 
     if save_to_pickle:
         print("Saving Results to Pickle File")
-        save_to_pickle_file(top_k, 'results/QST1/method2/hypo_corresps.pkl')
+        save_to_pickle_file(top_k, 'result.pkl')
 
     if ground_truth_available:
         map_k = get_mapk(GT, top_k, k)
         print('Map@K result: ' + str(map_k))
 
-    if background_removal == "True":
-        print("Getting Precision, Recall and F1 score")
-        GT_masks = glob.glob(mask_gt_path + '/000*.png')  # Load masks from the ground truth
-        GT_masks.sort()
+    # if background_removal == "True":
+    #     print("Getting Precision, Recall and F1 score")
+    #     GT_masks = glob.glob(mask_gt_path + '/000*.png')  # Load masks from the ground truth
+    #     GT_masks.sort()
 
-        mean_precision = []
-        mean_recall = []
-        mean_f1score = []
-        for idx, mask in masks_evaluation.items():  # For each pair of masks, obtain the recall, precision and f1score metrics
-            recall, precision, f1score = evaluate_mask(cv2.imread((GT_masks[idx]), cv2.COLOR_BGR2GRAY),
-                                                        mask, idx)
-            mean_recall.append(recall)
-            mean_precision.append(precision)
-            mean_f1score.append(f1score)
+    #     mean_precision = []
+    #     mean_recall = []
+    #     mean_f1score = []
+    #     for idx, mask in masks_evaluation.items():  # For each pair of masks, obtain the recall, precision and f1score metrics
+    #         recall, precision, f1score = evaluate_mask(cv2.imread((GT_masks[idx]), cv2.COLOR_BGR2GRAY),
+    #                                                     mask, idx)
+    #         mean_recall.append(recall)
+    #         mean_precision.append(precision)
+    #         mean_f1score.append(f1score)
 
-        print('Precision: ' + str(np.array(mean_precision).mean()))
-        print('Recall: ' + str(np.array(mean_recall).mean()))
-        print('F1 score: ' + str(np.array(mean_f1score).mean()))
+    #     print('Precision: ' + str(np.array(mean_precision).mean()))
+    #     print('Recall: ' + str(np.array(mean_recall).mean()))
+    #     print('F1 score: ' + str(np.array(mean_f1score).mean()))

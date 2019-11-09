@@ -13,7 +13,7 @@ def extract_text(cropped_image_path, idx, to_save):
     :param to_save:
     :return:
     """
-    # pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+    pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
     text = pytesseract.image_to_string(cropped_image_path, config='-l eng --oem 1 --psm 10')
     #import pdb; pdb.set_trace()
     if to_save:

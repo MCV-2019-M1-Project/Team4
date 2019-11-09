@@ -131,10 +131,10 @@ def calculate_similarities(color_base, metric, dimension, query_hists, query_tex
                                                     museum_textures[idx_museum])
 
             if query_ocrs is not None:
-                distance += (1 - calculate_text_distance(query_ocrs[idx_query], museum_ocrs[idx_museum], 'levenshtein'))
+                distance += 5 * (1 - calculate_text_distance(query_ocrs[idx_query], museum_ocrs[idx_museum], 'levenshtein'))
 
             if query_local_descriptors is not None:
-                distance = - match_descriptors(query_local_descriptors[idx_query], museum_local_descriptors[idx_museum],
+                distance += - 5 * match_descriptors(query_local_descriptors[idx_query], museum_local_descriptors[idx_museum],
                                                matching_method, local_metric, threshold)
 
             query_element_distances_list.append([idx_museum, distance])
@@ -149,9 +149,14 @@ def calculate_similarities(color_base, metric, dimension, query_hists, query_tex
 
         query_element_distances_list.sort(key=lambda x: x[1])
         aux_list = []
+        print(query_element_distances_list[0][1])
+        if query_element_distances_list[0][1] > 4.5 and query_local_descriptors is not None and query_ocrs is not None and query_textures is not None and query_hists is not None:
+            query_element_distances_list[0][0] = -1
+        elif query_element_distances_list[0][1] > 2 and query_local_descriptors is not None and query_ocrs is None and query_textures is not None and query_hists is not None:
+            query_element_distances_list[0][0] = -1
+        elif query_element_distances_list[0][1] > -0.3 and query_local_descriptors is not None and query_ocrs is None and query_textures is None and query_hists is None:
+            query_element_distances_list[0][0] = -1
         for pair in query_element_distances_list:
-            if pair[1] == 0 and query_local_descriptors is not None:
-                pair[0] = -1
             del (pair[1])
             aux_list.append(pair[0])
         predictions.append(aux_list)
@@ -192,6 +197,7 @@ def get_top_k(predictions, k, number_subimages_dic):
     if number_subimages_dic is None:
         for element in predictions:
             if element == -1:
+                del(element[1:])
                 predictions_to_return.append(element)
             else:
                 del(element[k:])
@@ -200,18 +206,27 @@ def get_top_k(predictions, k, number_subimages_dic):
         predictions_idx = 0
         for idx, number_subimages in number_subimages_dic.items():
             if number_subimages == 1:
-                del (predictions[idx][k:])
+                if predictions[idx][0] == -1:
+                    del (predictions[idx][1:])
+                else:
+                    del (predictions[idx][k:])
                 predictions_to_return.append(predictions[idx])
-            else:
+                predictions_idx += 1
+            elif number_subimages == 2:
                 aux_list = []
-                del (predictions[predictions_idx][k:])
+                if predictions[predictions_idx][0] == -1:
+                    del (predictions[predictions_idx][1:])
+                else:
+                    del (predictions[predictions_idx][k:])
                 aux_list.append(predictions[predictions_idx])
                 predictions_idx += 1
-                del (predictions[predictions_idx][k:])
+                if predictions[predictions_idx][0] == -1:
+                    del (predictions[predictions_idx][1:])
+                else:
+                    del (predictions[predictions_idx][k:])
                 aux_list.append(predictions[predictions_idx])
                 predictions_to_return.append(aux_list)
-
-            predictions_idx += 1
+                predictions_idx += 1
 
     return predictions_to_return
 

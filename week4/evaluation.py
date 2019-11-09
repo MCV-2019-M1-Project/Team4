@@ -198,12 +198,13 @@ def get_top_k(predictions, k, number_subimages_dic):
                 predictions_to_return.append(element)
     else:
         predictions_idx = 0
+        aux_list = []
         for idx, number_subimages in number_subimages_dic.items():
             if number_subimages == 1:
                 del (predictions[idx][k:])
-                predictions_to_return.append(predictions[idx])
+                aux_list.append(predictions[idx])
+                predictions_to_return.append(aux_list)
             else:
-                aux_list = []
                 del (predictions[predictions_idx][k:])
                 aux_list.append(predictions[predictions_idx])
                 predictions_idx += 1
