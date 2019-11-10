@@ -182,8 +182,8 @@ if __name__ == '__main__':
     print("Getting Query Features")
     idx = 0
     masks = {}
-    masks_evaluation = {}
     cropped_images = {}
+    paintings_data = []
     number_query_elements = len(query_filenames)
     result_text = []
 
@@ -218,11 +218,13 @@ if __name__ == '__main__':
         if text_removal and multiple_subimages:
 
             # Get background masks
-            masks[idx], _ = find_paintings(query_image, masks_path, idx)  # _ is gonna be the cropped images
-            masks_evaluation[idx] = mask_creation_v2(query_image, masks_path, idx)
+            masks[idx], cropped_paintings, query_painting_data = find_paintings(query_image, masks_path, idx)
+            paintings_data.append(query_painting_data)
 
             #  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            #  Probably the way we were finding pictures will need some change
+            #  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            #  NEED TO CHANGE THIS
+
             output = paintings_detection(query_image, masks[idx])
 
             # Detect bounding boxes for text (result_text) and get the masks with text
@@ -340,7 +342,7 @@ if __name__ == '__main__':
         mean_precision = []
         mean_recall = []
         mean_f1score = []
-        for idx, mask in masks_evaluation.items():  # For each pair of masks, obtain the recall, precision and f1score metrics
+        for idx, mask in masks.items():  # For each pair of masks, obtain the recall, precision and f1score metrics
             recall, precision, f1score = evaluate_mask(cv2.cvtColor(cv2.imread(GT_masks[idx]), cv2.COLOR_BGR2GRAY), mask, idx)
             mean_recall.append(recall)
             mean_precision.append(precision)
