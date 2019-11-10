@@ -205,14 +205,14 @@ def get_top_k(predictions, k, number_subimages_dic):
     else:
         predictions_idx = 0
         for idx, number_subimages in number_subimages_dic.items():
-            if number_subimages == 1:
+            if number_subimages == 0:
                 if predictions[idx][0] == -1:
                     del (predictions[idx][1:])
                 else:
                     del (predictions[idx][k:])
                 predictions_to_return.append(predictions[idx])
                 predictions_idx += 1
-            elif number_subimages == 2:
+            elif number_subimages == 1:
                 aux_list = []
                 if predictions[predictions_idx][0] == -1:
                     del (predictions[predictions_idx][1:])
@@ -227,6 +227,27 @@ def get_top_k(predictions, k, number_subimages_dic):
                 aux_list.append(predictions[predictions_idx])
                 predictions_to_return.append(aux_list)
                 predictions_idx += 1
+            elif number_subimages == 2:
+                aux_list = []
+                if predictions[predictions_idx][0] == -1:
+                    del (predictions[predictions_idx][1:])
+                else:
+                    del (predictions[predictions_idx][k:])
+                aux_list.append(predictions[predictions_idx])
+                predictions_idx += 1
+                if predictions[predictions_idx][0] == -1:
+                    del (predictions[predictions_idx][1:])
+                else:
+                    del (predictions[predictions_idx][k:])
+                aux_list.append(predictions[predictions_idx])
+                predictions_idx += 1
+                if predictions[predictions_idx][0] == -1:
+                    del (predictions[predictions_idx][1:])
+                else:
+                    del (predictions[predictions_idx][k:])
+                aux_list.append(predictions[predictions_idx])
+                predictions_idx += 1
+                predictions_to_return.append(aux_list)
 
     return predictions_to_return
 

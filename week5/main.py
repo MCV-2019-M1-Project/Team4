@@ -45,9 +45,9 @@ if __name__ == '__main__':
     # GT and results parameters
     save_to_pickle = False
     save_to_pickle_text = False
-    ground_truth_available = False
-    ground_truth_text_available = False
-    ground_truth_ocr_available = False
+    ground_truth_available = True
+    ground_truth_text_available = True
+    ground_truth_ocr_available = True
 
     # Denoise parameters
     execute_denoise_process = False
@@ -168,8 +168,8 @@ if __name__ == '__main__':
     # Use denoised images or not
     if use_denoised_images:
         # Get query images filenames
-        query_set_path = query_set_path + '_denoised/'
-        query_filenames = glob.glob(query_set_path + '*.jpg')
+        query_set_denoised_path = query_set_path + '_denoised/'
+        query_filenames = glob.glob(query_set_denoised_path + '*.jpg')
         query_filenames.sort()
     else:
         # Get query images filenames
@@ -213,85 +213,50 @@ if __name__ == '__main__':
 
     # Iterate over the query images to extract the features
     for query_image in query_filenames:
-        print("Getting Features for Query Image " + str(idx))
+        print("Finding subpaintings in Query Image " + str(idx))
 
         if text_removal and multiple_subimages:
 
             # Get background masks
-            masks[idx], cropped_paintings, query_painting_data = find_paintings(query_image, masks_path, idx)
+            masks[idx], cropped_paintings, query_painting_data, number_subpaintings = find_paintings(query_image, masks_path, idx, query_set_path)
             paintings_data.append(query_painting_data)
+            number_subimages[idx] = number_subpaintings
 
-            #  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            #  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            #  NEED TO CHANGE THIS
+            idx += 1
+    
+    if text_removal and multiple_subimages:
+        query_cropped_filenames = glob.glob(query_set_path + '_cropped_images/' + '*.jpg')
+        query_cropped_filenames.sort()   
+        query_features_idx = 0
 
-            output = paintings_detection(query_image, masks[idx])
+    for query_cropped_image in query_cropped_filenames:  
+        print("Getting features for Query Image " + str(query_features_idx)) 
 
-            # Detect bounding boxes for text (result_text) and get the masks with text
-            print("Getting text for query image " + str(idx))
-            if output > 0:
-                result_text.extend(detect_bounding_boxes(query_image, mask_text_path, text_method, True, True, idx))
-            else:
-                result_text.extend(detect_bounding_boxes(query_image, mask_text_path, text_method, True, False, idx))
+        result_text.extend(detect_bounding_boxes(query_cropped_image, mask_text_path, text_method, True, False, query_features_idx))
+        text_mask = cv2.cvtColor(cv2.imread(query_cropped_image),cv2.COLOR_BGR2GRAY)
+        text_mask[:,:] = 255
+        text_mask[result_text[query_features_idx][0][1]:result_text[query_features_idx][0][3], result_text[query_features_idx][0][0]:result_text[query_features_idx][0][2]] = 0
 
-            # Get text mask
-            text_mask = masks[idx]
-            text_mask[result_text[idx][0][1]:result_text[idx][0][3], result_text[idx][0][0]:result_text[idx][0][2]] = 0
+        if histogram_descriptors:
+            query_histograms[query_features_idx] = calculate_image_histogram(query_cropped_image, text_mask,
+                                                                                color_base, dimension, level,
+                                                                                None, None)
 
-            if output > 0:
-                number_subimages[query_features_idx] = 2
-                if histogram_descriptors:
-                    query_histograms[query_features_idx] = calculate_image_histogram(query_image, text_mask,
-                                                                                         color_base, dimension, level,
-                                                                                         output, 'left')
-                    query_histograms[query_features_idx + 1] = calculate_image_histogram(query_image, text_mask,
-                                                                                             color_base, dimension,
-                                                                                             level, output, 'right')
+        if texture_descriptors:
+            query_textures[query_features_idx] = get_image_texture_descriptor(query_cropped_image, texture_method,
+                                                                                texture_descriptor_level,
+                                                                                text_mask, None, None)
 
-                if texture_descriptors:
-                    query_textures[query_features_idx] = get_image_texture_descriptor(query_image, texture_method,
-                                                                                          texture_descriptors, text_mask,
-                                                                                          output, 'left')
-                    query_textures[query_features_idx + 1] = get_image_texture_descriptor(query_image, texture_method,
-                                                                                          texture_descriptors, text_mask,
-                                                                                          output, 'right')
+        if text_descriptors:
+            query_ocrs[query_features_idx] = get_text(query_cropped_image, mask_text_path, text_method, query_features_idx, None,
+                                                        None, True)
 
-                if text_descriptors:
-                    query_ocrs[query_features_idx] = get_text(query_image, mask_text_path, text_method, idx, output, 'left', True)
-                    query_ocrs[query_features_idx + 1] = get_text(query_image, mask_text_path, text_method, idx,
-                                                                  output, 'right', True)
+        if local_descriptors:
+            query_local_descriptors[query_features_idx] = extract_local_descriptors(query_cropped_image, text_mask,
+                                                                                    local_method, None, None)
+        
+        query_features_idx += 1
 
-                if local_descriptors:
-                    query_local_descriptors[query_features_idx] = extract_local_descriptors(query_image, text_mask,
-                                                                                            local_method, output, 'left')
-                    query_local_descriptors[query_features_idx + 1] = extract_local_descriptors(query_image, text_mask,
-                                                                                            local_method, output, 'right')                                                                                            
-                
-                query_features_idx += 2
-                
-            else:
-                number_subimages[query_features_idx] = 1
-                if histogram_descriptors:
-                    query_histograms[query_features_idx] = calculate_image_histogram(query_image, text_mask,
-                                                                                     color_base, dimension, level,
-                                                                                     None, None)
-
-                if texture_descriptors:
-                    query_textures[query_features_idx] = get_image_texture_descriptor(query_image, texture_method,
-                                                                                      texture_descriptor_level,
-                                                                                      text_mask, None, None)
-
-                if text_descriptors:
-                    query_ocrs[query_features_idx] = get_text(query_image, mask_text_path, text_method, idx, None,
-                                                              None, True)
-
-                if local_descriptors:
-                    query_local_descriptors[query_features_idx] = extract_local_descriptors(query_image, text_mask,
-                                                                                            local_method, None, None)
-                
-                query_features_idx += 1
-
-        idx += 1
 
     # Check if the text results need to be saved in a pickle file
     if save_to_pickle_text:
@@ -305,7 +270,7 @@ if __name__ == '__main__':
 
     # Compute similarities to museum images for each image
     if multiple_subimages:
-        print("Getting Similarities for Query Set2 and Museum")
+        print("Getting Similarities for Query Set and Museum")
         print("Number of paintings in query set when there are subpaintings: ", query_features_idx)
         predictions = calculate_similarities(color_base, metric, dimension, query_histograms, query_textures,
                                              query_ocrs, query_local_descriptors, museum_histograms, museum_textures, museum_text_gt,

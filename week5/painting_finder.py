@@ -2,23 +2,30 @@ import imutils
 import numpy as np
 import cv2
 import glob
-from week5.mask import *
 from scipy import ndimage
 
+# VSCode imports
+from mask import *
 
-def find_paintings(image_path, masks_path, image_idx):
+# PyCharm Imports
+# from week5.mask import *
+
+
+def find_paintings(image_path, masks_path, image_idx, query_set_path):
     """
     This function gets the bounding boxes of the paintings in an image, as well as their angle of inclination.
 
     :param image_path: path where the image is stored
     :param masks_path: path where the masks are stored
     :param image_idx: Index of the image
+    :param query_set_path path of the query set images
     :return: triplet containing: binary mask, list with cropped paintings and list with angle of inclination and
     bounding boxes
+    :return: we also return the number of subpaintings detected
     """
 
     image = cv2.imread(image_path)
-    mask = mask_creation_v2(image_path, masks_path, idx)
+    mask = mask_creation_v2(image_path, masks_path, image_idx)
 
     # find contours
     contours = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -45,8 +52,8 @@ def find_paintings(image_path, masks_path, image_idx):
         box = np.int0(box)
 
         cv2.drawContours(image, [box], 0, (0, 0, 255), 2)
-        cv2.imshow("result", cv2.resize(image, (0, 0), fx=0.5, fy=0.5))
-        cv2.waitKey(0)
+        # cv2.imshow("result", cv2.resize(image, (0, 0), fx=0.5, fy=0.5))
+        # cv2.waitKey(0)
 
         # get width and height of the detected rectangle
         width = int(rect[1][0])
@@ -89,11 +96,11 @@ def find_paintings(image_path, masks_path, image_idx):
         cropped_paintings.append(warped)
 
         # print('images/cropped_images/' + str(image_idx).zfill(2) + '_' + str(sub_image_idx) + ".jpg")
-        cv2.imwrite('images/cropped_images/' + str(image_idx).zfill(2) + '_' + str(sub_image_idx) + ".jpg", warped)
+        cv2.imwrite(query_set_path +  '_cropped_images/' + str(image_idx).zfill(2) + '_' + str(sub_image_idx) + ".jpg", warped)
 
         sub_image_idx += 1
 
-    return mask, cropped_paintings, painting_data
+    return mask, cropped_paintings, painting_data, sub_image_idx
 
 
 if __name__ == '__main__':
