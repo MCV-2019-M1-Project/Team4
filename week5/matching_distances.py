@@ -3,6 +3,7 @@
 import numpy as np
 import cv2
 
+
 def _filter_matches(matches, ratio=0.5):
     good = []
     for m, n in matches:
@@ -43,9 +44,16 @@ def flann_match(query_des, image_des, distance_metric, threshold):
     flann = cv2.FlannBasedMatcher(index_params, search_params)
 
     # For each image descriptor, find best k matches among query descriptors
-    matches = flann.knnMatch(image_des, query_des, k=2)
-    good = _filter_matches(matches)
-    score = _compute_similarity_score(good, threshold)
+    error = False
+    try:
+        matches = flann.knnMatch(image_des, query_des, k=2)
+        good = _filter_matches(matches)
+        score = _compute_similarity_score(good, threshold)
+    except:
+        if not error:
+            print("Exception when getting matches")
+            error = True
+        score = 0
 
     return score
 

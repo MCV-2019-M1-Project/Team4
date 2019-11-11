@@ -136,7 +136,7 @@ def calculate_similarities(color_base, metric, dimension, query_hists, query_tex
                             1 - calculate_text_distance(query_ocrs[idx_query], museum_ocrs[idx_museum], 'levenshtein'))
 
             if query_local_descriptors is not None:
-                distance += - 5 * match_descriptors(query_local_descriptors[idx_query],
+                distance += - 1 * match_descriptors(query_local_descriptors[idx_query],
                                                     museum_local_descriptors[idx_museum],
                                                     matching_method, local_metric, threshold)
 

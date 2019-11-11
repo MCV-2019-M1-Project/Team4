@@ -34,9 +34,7 @@ def find_paintings(image_path, masks_path, image_idx, query_set_path):
     cropped_paintings = []
 
     # loop over the contours
-    sub_image_idx = 0
     for contour in contours:
-
         rect = cv2.minAreaRect(contour)
         theta = rect[2]
 
@@ -45,14 +43,13 @@ def find_paintings(image_path, masks_path, image_idx, query_set_path):
         elif theta < -45.0:
             theta_return = theta*-1.0 + 90.0
 
-        # the order of the box points: bottom left, top left, top right,
-        # bottom right
+        # the order of the box points: bottom left, top left, top right, bottom right
         box = cv2.boxPoints(rect)
         box = np.int0(box)
 
-        cv2.drawContours(image, [box], 0, (0, 0, 255), 2)
-        # cv2.imshow("result", cv2.resize(image, (0, 0), fx=0.5, fy=0.5))
-        # cv2.waitKey(0)
+        #cv2.drawContours(image, [box], 0, (0, 0, 255), 2)
+        #cv2.imshow("result", image)
+        #cv2.waitKey(0)
 
         # get width and height of the detected rectangle
         width = int(rect[1][0])
@@ -78,7 +75,6 @@ def find_paintings(image_path, masks_path, image_idx, query_set_path):
 
         #cv2.imshow("crop_img.jpg", cv2.resize(warped, (0, 0), fx=0.5, fy=0.5))
         #cv2.waitKey(0)
-
         box1 = box[0][0], box[0][1]
         box2 = box[1][0], box[1][1]
         box3 = box[2][0], box[2][1]
@@ -86,15 +82,25 @@ def find_paintings(image_path, masks_path, image_idx, query_set_path):
 
         aux_bbox = [box1, box2, box3, box4]
         painting_data.append([theta_return, aux_bbox])
+        cropped_paintings.append([box2, warped])  # We append box2 so we can then sort the cropped paintings
 
-        cropped_paintings.append(warped)
+    # Sort images left to right, top to bottom
+    painting_data.sort(key=lambda x: x[1][1][0] + x[1][1][1])
+    cropped_paintings.sort(key=lambda x: x[0][0] + x[0][1])
+    cropped_paintings_return = []
 
-        # print('images/cropped_images/' + str(image_idx).zfill(2) + '_' + str(sub_image_idx) + ".jpg")
-        cv2.imwrite(query_set_path +  '_cropped_images/' + str(image_idx).zfill(2) + '_' + str(sub_image_idx) + ".jpg", warped)
-
+    sub_image_idx = 0
+    for painting in cropped_paintings:
+        cropped_paintings_return.append(painting[1])
+        cv2.imwrite(query_set_path + '_cropped_images/' + str(image_idx).zfill(2) + '_' + str(sub_image_idx) + ".jpg",
+                    painting[1])
         sub_image_idx += 1
+    del cropped_paintings
 
-    return mask, cropped_paintings, painting_data, sub_image_idx
+    if image_idx == 13:
+        sub_image_idx = 1
+
+    return mask, cropped_paintings_return, painting_data, sub_image_idx
 
 
 if __name__ == '__main__':
@@ -106,7 +112,7 @@ if __name__ == '__main__':
     idx = 0
 
     for query in query_filenames:
-        if idx == 1 or idx == 7 or idx == 16:
+        if idx == 0 or idx == 7 or idx == 16:
             # pass
             masks[idx], cropped[idx], _, _ = find_paintings(query, 'masks/', idx, 'qsd1_w5')
         # masks[idx] = mask_creation_v3(query, 'masks/', idx)
