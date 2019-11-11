@@ -19,9 +19,8 @@ def find_paintings(image_path, masks_path, image_idx, query_set_path):
     :param masks_path: path where the masks are stored
     :param image_idx: Index of the image
     :param query_set_path path of the query set images
-    :return: triplet containing: binary mask, list with cropped paintings and list with angle of inclination and
-    bounding boxes
-    :return: we also return the number of subpaintings detected
+    :return: quadruple containing: binary mask, list with cropped paintings, list with angle of inclination and
+    bounding boxes, number of subpaintings detected
     """
 
     image = cv2.imread(image_path)
@@ -73,18 +72,12 @@ def find_paintings(image_path, masks_path, image_idx, query_set_path):
         # directly warp the rotated rectangle to get the straightened rectangle
         warped = cv2.warpPerspective(image, transformation_matrix.astype('float32'), (width, height))
 
-        """if theta_return > 90:
-            # the perspective transformation matrix
-            transformation_matrix = cv2.getPerspectiveTransform(src_pts, dst_pts)
-            # directly warp the rotated rectangle to get the straightened rectangle
-            warped = cv2.warpPerspective(warped, transformation_matrix.astype('float32'), (width, height))"""
-
         if theta_return > 90:
             # rotation angle in degree
             warped = ndimage.rotate(warped, 90)
 
-        # cv2.imshow("crop_img.jpg", cv2.resize(warped, (0, 0), fx=0.5, fy=0.5))
-        # cv2.waitKey(0)
+        #cv2.imshow("crop_img.jpg", cv2.resize(warped, (0, 0), fx=0.5, fy=0.5))
+        #cv2.waitKey(0)
 
         box1 = box[0][0], box[0][1]
         box2 = box[1][0], box[1][1]
@@ -92,7 +85,8 @@ def find_paintings(image_path, masks_path, image_idx, query_set_path):
         box4 = box[3][0], box[3][1]
 
         aux_bbox = [box1, box2, box3, box4]
-        painting_data.extend([theta_return, aux_bbox])
+        painting_data.append([theta_return, aux_bbox])
+
         cropped_paintings.append(warped)
 
         # print('images/cropped_images/' + str(image_idx).zfill(2) + '_' + str(sub_image_idx) + ".jpg")
@@ -112,8 +106,8 @@ if __name__ == '__main__':
     idx = 0
 
     for query in query_filenames:
-        if idx == 0 or idx == 3 or idx == 7 or idx == 16:
+        if idx == 1 or idx == 7 or idx == 16:
             # pass
-            masks[idx], cropped[idx], _ = find_paintings(query, 'masks/', idx)
+            masks[idx], cropped[idx], _, _ = find_paintings(query, 'masks/', idx, 'qsd1_w5')
         # masks[idx] = mask_creation_v3(query, 'masks/', idx)
         idx += 1

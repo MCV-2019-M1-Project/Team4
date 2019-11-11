@@ -5,21 +5,21 @@ Options:
 """
 
 # VSCode imports
-from evaluation import *
-from mask import *
-from texture_descriptors import *
-from text_ocr import *
-from compute_text_distances import *
-from local_descriptors import *
-from matching_distances import *
-from painting_finder import *
+#from evaluation import *
+#from mask import *
+#from texture_descriptors import *
+#from text_ocr import *
+#from compute_text_distances import *
+#from local_descriptors import *
+#from matching_distances import *
+#from painting_finder import *
 
 # PyCharm Imports
-# from week5.evaluation import *
-# from week5.texture_descriptors import *
-# from week5.text_ocr import *
-# from week5.local_descriptors import extract_local_descriptors
-# from week5.painting_finder import *
+from week5.evaluation import *
+from week5.texture_descriptors import *
+from week5.text_ocr import *
+from week5.local_descriptors import extract_local_descriptors
+from week5.painting_finder import *
 
 import sys
 import glob
@@ -47,6 +47,8 @@ if __name__ == '__main__':
     save_to_pickle_text = False
     ground_truth_available = True
     ground_truth_text_available = True
+    ground_truth_cropping_available = True
+    ground_truth_angle_available = True
     ground_truth_ocr_available = True
 
     # Denoise parameters
@@ -54,19 +56,19 @@ if __name__ == '__main__':
     use_denoised_images = True
 
     # Texture parameters
-    texture_descriptors = True
+    texture_descriptors = False
     texture_descriptor_level = 3
     texture_method = "LBP"
 
     # Histogram parameters
-    histogram_descriptors = True
+    histogram_descriptors = False
     color_base = "LAB"
     dimension = '2D'
     metric = "bhattacharya_distance"
     level = 3
 
     # Text parameters
-    text_descriptors = True
+    text_descriptors = False
 
     # Local descriptors parameters
     local_descriptors = True
@@ -85,6 +87,10 @@ if __name__ == '__main__':
     if ground_truth_text_available:
         print("Loading Text Ground Truth")
         GT_text = get_ground_truth(query_set_path + '/' + 'text_boxes.pkl')
+
+    if ground_truth_cropping_available:
+        print("Loading paintings bbox Ground Truth")
+        GT_crop = get_ground_truth(query_set_path + '/' + 'frames.pkl')
 
     # Get museum images filenames
     print("Getting Museum Images")
@@ -177,7 +183,6 @@ if __name__ == '__main__':
         query_filenames = glob.glob(query_set_path + '/' + '*.jpg')
         query_filenames.sort()
 
-
     # Get query images histograms
     print("Getting Query Features")
     idx = 0
@@ -186,7 +191,6 @@ if __name__ == '__main__':
     paintings_data = []
     number_query_elements = len(query_filenames)
     result_text = []
-
 
     # Check the data structures needed to store the features
     if histogram_descriptors:
@@ -232,9 +236,10 @@ if __name__ == '__main__':
     for query_cropped_image in query_cropped_filenames:  
         print("Getting features for Query Image " + str(query_features_idx)) 
 
-        result_text.extend(detect_bounding_boxes(query_cropped_image, mask_text_path, text_method, True, False, query_features_idx))
+        result_text.extend(detect_bounding_boxes(query_cropped_image, mask_text_path, text_method, True, False,
+                                                 query_features_idx))
         text_mask = cv2.cvtColor(cv2.imread(query_cropped_image),cv2.COLOR_BGR2GRAY)
-        text_mask[:,:] = 255
+        text_mask[:, :] = 255
         text_mask[result_text[query_features_idx][0][1]:result_text[query_features_idx][0][3], result_text[query_features_idx][0][0]:result_text[query_features_idx][0][2]] = 0
 
         if histogram_descriptors:
@@ -257,7 +262,6 @@ if __name__ == '__main__':
         
         query_features_idx += 1
 
-
     # Check if the text results need to be saved in a pickle file
     if save_to_pickle_text:
         print("Saving Results to Pickle File")
@@ -265,8 +269,17 @@ if __name__ == '__main__':
 
     # Evaluation of the text Removal
     if ground_truth_text_available:
-        IoU = evaluate_text(GT_text, result_text)
-        print("Intersection over Union: ", str(IoU))
+        IoU_text = evaluate_bbox(GT_text, result_text)
+        print("Intersection over Union for text: ", str(IoU_text))
+
+    # Evaluation of the Painting Bounding Boxes
+    if ground_truth_cropping_available:
+        pass
+
+    # Evaluation of the Angles of the paintings
+    if ground_truth_angle_available:
+        error = get_angles_error(GT_crop, paintings_data, query_features_idx)
+        print("Mean Error for angles (in total degrees): ", str(error))
 
     # Compute similarities to museum images for each image
     if multiple_subimages:
@@ -293,7 +306,7 @@ if __name__ == '__main__':
 
     if save_to_pickle:
         print("Saving Results to Pickle File")
-        save_to_pickle_file(top_k, 'results/QST1/method2/hypo_corresps.pkl')
+        save_to_pickle_file(top_k, 'results/QST1/method2/result.pkl')
 
     if ground_truth_available:
         map_k = get_mapk(GT, top_k, k)

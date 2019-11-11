@@ -88,10 +88,11 @@ def calculate_text_distance(str_1, str_2, method):
         raise Exception("Wrong distance method")
 
 
-def calculate_similarities(color_base, metric, dimension, query_hists, query_textures, query_ocrs, query_local_descriptors, 
-                           museum_hists, museum_textures, museum_ocrs, museum_local_descriptors, num_query_elements, num_museum_elements,
+def calculate_similarities(color_base, metric, dimension, query_hists, query_textures, query_ocrs,
+                           query_local_descriptors,
+                           museum_hists, museum_textures, museum_ocrs, museum_local_descriptors, num_query_elements,
+                           num_museum_elements,
                            matching_method, local_metric, threshold):
-
     """
     This function calculates the similarity between each image of the query set with all the museum database images,
     and then sorts out the museum images by distance in ascending order.
@@ -131,11 +132,13 @@ def calculate_similarities(color_base, metric, dimension, query_hists, query_tex
                                                     museum_textures[idx_museum])
 
             if query_ocrs is not None:
-                distance += 5 * (1 - calculate_text_distance(query_ocrs[idx_query], museum_ocrs[idx_museum], 'levenshtein'))
+                distance += 5 * (
+                            1 - calculate_text_distance(query_ocrs[idx_query], museum_ocrs[idx_museum], 'levenshtein'))
 
             if query_local_descriptors is not None:
-                distance += - 5 * match_descriptors(query_local_descriptors[idx_query], museum_local_descriptors[idx_museum],
-                                               matching_method, local_metric, threshold)
+                distance += - 5 * match_descriptors(query_local_descriptors[idx_query],
+                                                    museum_local_descriptors[idx_museum],
+                                                    matching_method, local_metric, threshold)
 
             query_element_distances_list.append([idx_museum, distance])
 
@@ -150,17 +153,20 @@ def calculate_similarities(color_base, metric, dimension, query_hists, query_tex
         query_element_distances_list.sort(key=lambda x: x[1])
         aux_list = []
         print(query_element_distances_list[0][1])
-        if query_element_distances_list[0][1] > 4.5 and query_local_descriptors is not None and query_ocrs is not None and query_textures is not None and query_hists is not None:
+        if query_element_distances_list[0][
+            1] > 4.5 and query_local_descriptors is not None and query_ocrs is not None and query_textures is not None and query_hists is not None:
             query_element_distances_list[0][0] = -1
-        elif query_element_distances_list[0][1] > 2 and query_local_descriptors is not None and query_ocrs is None and query_textures is not None and query_hists is not None:
+        elif query_element_distances_list[0][
+            1] > 2 and query_local_descriptors is not None and query_ocrs is None and query_textures is not None and query_hists is not None:
             query_element_distances_list[0][0] = -1
-        elif query_element_distances_list[0][1] > -0.3 and query_local_descriptors is not None and query_ocrs is None and query_textures is None and query_hists is None:
+        elif query_element_distances_list[0][
+            1] > -0.3 and query_local_descriptors is not None and query_ocrs is None and query_textures is None and query_hists is None:
             query_element_distances_list[0][0] = -1
         for pair in query_element_distances_list:
             del (pair[1])
             aux_list.append(pair[0])
         predictions.append(aux_list)
-    
+
     return predictions
 
 
@@ -197,22 +203,22 @@ def get_top_k(predictions, k, number_subimages_dic):
     if number_subimages_dic is None:
         for element in predictions:
             if element == -1:
-                del(element[1:])
+                del (element[1:])
                 predictions_to_return.append(element)
             else:
-                del(element[k:])
+                del (element[k:])
                 predictions_to_return.append(element)
     else:
         predictions_idx = 0
         for idx, number_subimages in number_subimages_dic.items():
-            if number_subimages == 0:
+            if number_subimages == 1:
                 if predictions[idx][0] == -1:
                     del (predictions[idx][1:])
                 else:
                     del (predictions[idx][k:])
                 predictions_to_return.append(predictions[idx])
                 predictions_idx += 1
-            elif number_subimages == 1:
+            elif number_subimages == 2:
                 aux_list = []
                 if predictions[predictions_idx][0] == -1:
                     del (predictions[predictions_idx][1:])
@@ -227,7 +233,7 @@ def get_top_k(predictions, k, number_subimages_dic):
                 aux_list.append(predictions[predictions_idx])
                 predictions_to_return.append(aux_list)
                 predictions_idx += 1
-            elif number_subimages == 2:
+            elif number_subimages == 3:
                 aux_list = []
                 if predictions[predictions_idx][0] == -1:
                     del (predictions[predictions_idx][1:])
@@ -313,7 +319,7 @@ def detect_bounding_boxes(path, mask_set_path, method, save_masks, subpaintings,
     return bounding_boxes_detection(path, mask_set_path, method, save_masks, subpaintings, idx)
 
 
-def evaluate_text(GT_bounding_boxes, result_bounding_boxes):
+def evaluate_bbox(GT_bounding_boxes, result_bounding_boxes):
     """
     This function evaluates the accuracy of the result bounding boxes by calculating the parameter intersection over Union (IoU)
     
@@ -327,6 +333,31 @@ def evaluate_text(GT_bounding_boxes, result_bounding_boxes):
     return bounding_boxes_evaluation(GT_bounding_boxes, result_bounding_boxes)
 
 
+def get_angles_error(GT_crop, paintings_data, num_paintings):
+    """
+
+    :param GT_crop:
+    :param paintings_data:
+    :param num_paintings:
+    :return:
+    """
+
+    error = 0
+    idx_image = 0
+    for image in paintings_data:
+        idx_painting = 0
+        for painting in image:
+            try:
+                print(abs(painting[0] - GT_crop[idx_image][idx_painting][0]))
+                error += abs(painting[0] - GT_crop[idx_image][idx_painting][0])
+            except:
+                print("Image " + str(idx_image) + "has too many detected sub paintings")
+            idx_painting += 1
+        idx_image += 1
+
+    return error / num_paintings
+
+
 def detect_paintings(query_image, mask, idx):
     """
     This function evaluates how many paintings there are in a given image, using the background mask
@@ -337,12 +368,11 @@ def detect_paintings(query_image, mask, idx):
     return: 0 if there is only one painting
             x_value_to_split: indicates the horizontal pixel where we want to split the image when there are two paintings
     """
-    
+
     return paintings_detection(query_image, mask, idx)
 
-    
-def remove_noise(test_set_path, query_path, query_image, GT, idx, PSNR):
 
+def remove_noise(test_set_path, query_path, query_image, GT, idx, PSNR):
     # Remove noise
 
     image = cv2.imread(query_image)
@@ -350,19 +380,19 @@ def remove_noise(test_set_path, query_path, query_image, GT, idx, PSNR):
     # denoised_image = cv2.bilateralFilter (image, 7, 100, 100);
 
     # Adaptative median filter
- 
+
     denoised_image = image
     kernel_max = 13
     kernel = 1
-    minimum = cv2.erode(image, np.ones((kernel,kernel), np.uint8) / kernel**2, iterations = 1)
-    maximum = cv2.dilate(image, np.ones((kernel,kernel), np.uint8) / kernel**2, iterations = 1)
+    minimum = cv2.erode(image, np.ones((kernel, kernel), np.uint8) / kernel ** 2, iterations=1)
+    maximum = cv2.dilate(image, np.ones((kernel, kernel), np.uint8) / kernel ** 2, iterations=1)
     median = cv2.medianBlur(image, kernel)
-    
+
     while kernel <= kernel_max:
         kernel += 2
 
-        minimum = cv2.erode(denoised_image, np.ones((kernel,kernel), np.uint8) / kernel**2, iterations = 1)
-        maximum = cv2.dilate(denoised_image, np.ones((kernel,kernel), np.uint8) / kernel**2, iterations = 1)
+        minimum = cv2.erode(denoised_image, np.ones((kernel, kernel), np.uint8) / kernel ** 2, iterations=1)
+        maximum = cv2.dilate(denoised_image, np.ones((kernel, kernel), np.uint8) / kernel ** 2, iterations=1)
         median = cv2.medianBlur(denoised_image, kernel)
         print("kernel size: ", kernel)
         for nChannel in range(image.shape[2]):
@@ -370,9 +400,11 @@ def remove_noise(test_set_path, query_path, query_image, GT, idx, PSNR):
             for i in range(image.shape[0]):
                 for j in range(image.shape[1]):
 
-                    if (minimum[i, j, nChannel] == median[i, j, nChannel]) | (median[i, j, nChannel] == maximum[i, j, nChannel]):
+                    if (minimum[i, j, nChannel] == median[i, j, nChannel]) | (
+                            median[i, j, nChannel] == maximum[i, j, nChannel]):
                         continue
-                    elif (minimum[i, j, nChannel] == denoised_image[i, j, nChannel]) | (denoised_image[i, j, nChannel] == maximum[i, j, nChannel]):
+                    elif (minimum[i, j, nChannel] == denoised_image[i, j, nChannel]) | (
+                            denoised_image[i, j, nChannel] == maximum[i, j, nChannel]):
                         denoised_image[i, j, nChannel] = median[i, j, nChannel]
 
     print("Getting denoised image " + str(idx))
@@ -382,7 +414,7 @@ def remove_noise(test_set_path, query_path, query_image, GT, idx, PSNR):
     if GT is not 0:
         museum_filenames = glob.glob(test_set_path + '*.jpg')
         museum_filenames.sort()
-    
+
         museum_image = museum_filenames[int(GT[idx][0])]
         best_image = cv2.imread(museum_image)
         best_image = cv2.resize(best_image, (denoised_image.shape[1], denoised_image.shape[0]))
@@ -392,7 +424,7 @@ def remove_noise(test_set_path, query_path, query_image, GT, idx, PSNR):
         if MSE == 0:
             PSNR_image = 100
         else:
-            PSNR_image = 10 * np.log10((255**2) / np.sqrt(MSE))
+            PSNR_image = 10 * np.log10((255 ** 2) / np.sqrt(MSE))
 
         PSNR.append(PSNR_image)
 
