@@ -292,7 +292,6 @@ def bounding_boxes_evaluation(boxA, boxB):
     for idx in range(len(boxA)):
         for subidx in range(len(boxA[idx])):
             if len(boxB[idx]) > subidx:
-                
                 # determine the (x, y)-coordinates of the intersection rectangle
                 xA = max(boxA[idx][subidx][0], boxB[idx][subidx][0])
                 yA = max(boxA[idx][subidx][1], boxB[idx][subidx][1])

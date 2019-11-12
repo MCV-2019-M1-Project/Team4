@@ -269,17 +269,39 @@ if __name__ == '__main__':
 
     # Evaluation of the text Removal
     if ground_truth_text_available:
+        print(GT_text)
         IoU_text = evaluate_bbox(GT_text, result_text)
         print("Intersection over Union for text: ", str(IoU_text))
-
-    # Evaluation of the Painting Bounding Boxes
-    if ground_truth_cropping_available:
-        pass
 
     # Evaluation of the Angles of the paintings
     if ground_truth_angle_available:
         error = get_angles_error(GT_crop, paintings_data, query_features_idx)
         print("Mean Error for angles (in total degrees): ", str(error))
+
+    # Evaluation of the Painting Bounding Boxes
+    if ground_truth_cropping_available:
+        # print(GT_crop)
+        # print(paintings_data)
+        GT_crop_aux = []
+        for image in GT_crop:
+            aux_image = []
+            for sub_painting in image:
+                rect = sub_painting[1][0][0], sub_painting[1][0][1], sub_painting[1][2][0], sub_painting[1][2][1]
+                aux_image.append(rect)
+            GT_crop_aux.append(aux_image)
+        # print(GT_crop_aux)
+
+        crop_aux = []
+        for image in paintings_data:
+            aux_image = []
+            for sub_painting in image:
+                rect = sub_painting[1][1][0], sub_painting[1][1][1], sub_painting[1][3][0], sub_painting[1][3][1]
+                aux_image.append(rect)
+            crop_aux.append(aux_image)
+        # print(crop_aux)
+
+        IoU_crop = evaluate_bbox(GT_crop_aux, crop_aux)
+        print("Intersection over Union for Cropped paintings: ", str(IoU_crop))
 
     # Compute similarities to museum images for each image
     if multiple_subimages:

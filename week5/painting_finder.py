@@ -75,10 +75,10 @@ def find_paintings(image_path, masks_path, image_idx, query_set_path):
 
         #cv2.imshow("crop_img.jpg", cv2.resize(warped, (0, 0), fx=0.5, fy=0.5))
         #cv2.waitKey(0)
-        box1 = box[0][0], box[0][1]
-        box2 = box[1][0], box[1][1]
-        box3 = box[2][0], box[2][1]
-        box4 = box[3][0], box[3][1]
+        box1 = [box[0][0], box[0][1]]
+        box2 = [box[1][0], box[1][1]]
+        box3 = [box[2][0], box[2][1]]
+        box4 = [box[3][0], box[3][1]]
 
         aux_bbox = [box1, box2, box3, box4]
         painting_data.append([theta_return, aux_bbox])

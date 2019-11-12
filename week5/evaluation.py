@@ -348,7 +348,6 @@ def get_angles_error(GT_crop, paintings_data, num_paintings):
         idx_painting = 0
         for painting in image:
             try:
-                print(abs(painting[0] - GT_crop[idx_image][idx_painting][0]))
                 error += abs(painting[0] - GT_crop[idx_image][idx_painting][0])
             except:
                 print("Image " + str(idx_image) + "has too many detected sub paintings")
