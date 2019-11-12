@@ -149,6 +149,72 @@ def mask_creation_v2(image_path, path, idx):
 
     image = cv2.imread(image_path)
     image = cv2.medianBlur(image, 9)
+    
+    """ Shadow removal: Color segmentation method """
+    # image_2 = image
+
+    # lab = cv2.cvtColor(image, cv2.COLOR_RGB2LAB)
+
+    # image_border_mean = []
+
+    # for nC in range(image.shape[2]):
+    #     image_border_mean.append((np.mean(image[0, :, nC]) + np.mean(image[:, 0, nC]) + np.mean(image[-1, :, nC]) + np.mean(image[:, -1, nC]))/4 - 10)
+
+    # background_image = np.zeros((image.shape[0], image.shape[1], image.shape[2]), np.uint8)
+        
+    # for nC in range(background_image.shape[2]):
+    #     background_image[:,:,nC] = image_border_mean[nC]
+
+    # diff_image = lab[:,:,0] - background_image[:,:,0]
+    # # difference_image = np.zeros((diff_image.shape[0], diff_image.shape[1]), np.uint8)
+    # difference_image = cv2.adaptiveThreshold(diff_image,255,cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY,11,2)
+
+    # difference_image[diff_image>250] = 255
+    # difference_image[diff_image<=250] = 0
+    # difference_image[diff_image<200] = 255
+
+    # kernel = np.ones((3,3), np.float32)/9
+    # difference_image = cv2.morphologyEx(difference_image, cv2.MORPH_OPEN, kernel)
+    # difference_image = cv2.morphologyEx(difference_image, cv2.MORPH_CLOSE, kernel)
+    # image_2[difference_image == 0] = background_image[difference_image == 0]
+
+    """ Shadow removal: method in http://www.cit.iit.bas.bg/CIT_2013/v13-1/S_Murali,%20V_Govindan.pdf """
+
+    image_B = np.copy(image[:, :, 0])
+    image_G = np.copy(image[:, :, 1])
+    image_R = np.copy(image[:, :, 2]) 
+    s=np.shape(image)
+    #Converting RGB to LAB color space
+    lab = cv2.cvtColor(image, cv2.COLOR_RGB2LAB)
+    image_l = np.copy(lab[:, :, 0])
+    image_a = np.copy(lab[:, :, 1])
+    image_b = np.copy(lab[:, :, 2])
+
+    lm=np.mean(lab[:,:,0], axis=(0, 1))
+    am=np.mean(lab[:,:,1], axis=(0, 1))
+    bm=np.mean(lab[:,:,2], axis=(0, 1))
+
+    #Creating empty mask for masking shadow
+    mas = np.zeros((image.shape[0], image.shape[1]), np.uint8)
+    lb=lab[:,:,0]+lab[:,:,2]
+
+    #Hand crafted thresholds: Dataset specific
+    if (am+bm)<=255:
+        mas[(image_l <=(10+ lm-(np.std(image_l))/3))] = 255
+    else:
+        mas[(image_l+image_b)<=10] = 255
+    
+    # mas = cv2.bitwise_not(mas)
+
+    kernel = np.ones((3,3), np.float32)/9
+    mas = cv2.morphologyEx(mas, cv2.MORPH_CLOSE, kernel)
+    B_masked = np.ma.masked_array(image_B, mask = mas)
+    G_masked = np.ma.masked_array(image_G, mask = mas)
+    R_masked = np.ma.masked_array(image_R, mask = mas) 
+    masked_image = cv2.merge([B_masked, G_masked, R_masked])
+
+    """"""
+
 
     canny_tresh1 = 10
     canny_tresh2 = 30
@@ -175,21 +241,22 @@ def mask_creation_v2(image_path, path, idx):
     mask = cv2.dilate(mask, None, iterations=2)
     mask = cv2.erode(mask, None, iterations=9)
 
-    cv2.imwrite('masks/' + str(idx).zfill(2) + "_mask.png", mask)
+    cv2.imwrite('masks/' + str(idx).zfill(2) + "_mask.png", masked_image)
     return mask
 
 
 if __name__ == '__main__':
-    query_filenames = glob.glob("images/qsd1_w4_denoised/*.jpg")
+    query_filenames = glob.glob("images/qsd1_w5_denoised/*.jpg")
     query_filenames.sort()
     masks = {}
-    print(query_filenames)
+    # print(query_filenames)
     idx = 0
 
     for query in query_filenames:
-        if idx == 12:
+        print("Getting query image ", idx)
+        # if idx == 12:
             #pass
-            masks[idx] = mask_creation_v2(query, 'masks/', idx)
+        masks[idx] = mask_creation_v2(query, 'masks/', idx)
         #masks[idx] = mask_creation_v3(query, 'masks/', idx)
         idx += 1
 
