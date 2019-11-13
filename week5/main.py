@@ -56,22 +56,22 @@ if __name__ == '__main__':
     use_denoised_images = True
 
     # Texture parameters
-    texture_descriptors = True
+    texture_descriptors = False
     texture_descriptor_level = 3
     texture_method = "LBP"
 
     # Histogram parameters
-    histogram_descriptors = True
+    histogram_descriptors = False
     color_base = "LAB"
     dimension = '2D'
     metric = "bhattacharya_distance"
     level = 3
 
     # Text parameters
-    text_descriptors = True
+    text_descriptors = False
 
     # Local descriptors parameters
-    local_descriptors = False
+    local_descriptors = True
     local_method = "sift" # sift, surf, root_sift, orb, fast-daisy, brisk
     matching_method = "flann" # brute_force, flann, nmslib
     local_metric = "l2" # l1, l2, hamming, hamming2
@@ -285,18 +285,34 @@ if __name__ == '__main__':
 
     # Evaluation of the Painting Bounding Boxes
     if ground_truth_cropping_available:
-        # print(GT_crop)
-        # print(paintings_data)
         GT_crop_aux = []
+        # Get rectangles for GT paintings
         for image in GT_crop:
             aux_image = []
             for sub_painting in image:
-                rect = sub_painting[1][0][0], sub_painting[1][0][1], sub_painting[1][2][0], sub_painting[1][2][1]
+                sub_painting[1].sort()
+                # GT bboxes from the paintings are disordered, so we need to check what are the correct coordinates
+                if sub_painting[1][0][1] < sub_painting[1][1][1]:
+                    x1 = sub_painting[1][0][0]
+                    y1 = sub_painting[1][0][1]
+                else:
+                    x1 = sub_painting[1][1][0]
+                    y1 = sub_painting[1][1][1]
+
+                if sub_painting[1][2][1] > sub_painting[1][3][1]:
+                    x2 = sub_painting[1][2][0]
+                    y2 = sub_painting[1][2][1]
+                else:
+                    x2 = sub_painting[1][3][0]
+                    y2 = sub_painting[1][3][1]
+
+                rect = x1, y1, x2, y2
                 aux_image.append(rect)
             GT_crop_aux.append(aux_image)
         # print(GT_crop_aux)
 
         crop_aux = []
+        # Get rectangles for cropped paintings
         for image in paintings_data:
             aux_image = []
             for sub_painting in image:
@@ -305,6 +321,10 @@ if __name__ == '__main__':
             crop_aux.append(aux_image)
         # print(crop_aux)
 
+        print("GT painting rectangles: ")
+        print(GT_crop_aux)
+        print("Painting rectangles: ")
+        print(crop_aux)
         IoU_crop = evaluate_bbox(GT_crop_aux, crop_aux)
         print("Intersection over Union for Cropped paintings: ", str(IoU_crop))
 
