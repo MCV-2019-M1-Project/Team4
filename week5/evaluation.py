@@ -154,16 +154,20 @@ def calculate_similarities(color_base, metric, dimension, query_hists, query_tex
         aux_list = []
         print(query_element_distances_list[0][1])
         # Local + Texture + Color + Text descriptors threshold
-        if query_element_distances_list[0][1] > 4.5 and query_local_descriptors is not None and query_ocrs is not None and query_textures is not None and query_hists is not None:
+        if query_element_distances_list[0][1] > 4.5 and query_local_descriptors is not None and query_ocrs is not None \
+                and query_textures is not None and query_hists is not None:
             query_element_distances_list[0][0] = -1
         # Local + Texture + Color descriptors threshold
-        elif query_element_distances_list[0][1] > 2 and query_local_descriptors is not None and query_ocrs is None and query_textures is not None and query_hists is not None:
+        elif query_element_distances_list[0][1] > 2 and query_local_descriptors is not None and query_ocrs is None \
+                and query_textures is not None and query_hists is not None:
             query_element_distances_list[0][0] = -1
         # Only Local descriptors threshold
-        elif query_element_distances_list[0][1] > -0.1 and query_local_descriptors is not None and query_ocrs is None and query_textures is None and query_hists is None:
+        elif query_element_distances_list[0][1] > -0.1 and query_local_descriptors is not None and query_ocrs is None \
+                and query_textures is None and query_hists is None:
             query_element_distances_list[0][0] = -1
         # Texture + Color + Text descriptors threshold
-        elif query_element_distances_list[0][1] > 4.5 and query_local_descriptors is None and query_ocrs is not None and query_textures is not None and query_hists is not None:
+        elif query_element_distances_list[0][1] > 4.5 and query_local_descriptors is None and query_ocrs is not None \
+                and query_textures is not None and query_hists is not None:
             query_element_distances_list[0][0] = -1
         for pair in query_element_distances_list:
             del (pair[1])
@@ -207,10 +211,9 @@ def get_top_k(predictions, k, number_subimages_dic):
         for element in predictions:
             if element == -1:
                 del (element[1:])
-                predictions_to_return.append(element)
             else:
                 del (element[k:])
-                predictions_to_return.append(element)
+            predictions_to_return.append(element)
     else:
         predictions_idx = 0
         for idx, number_subimages in number_subimages_dic.items():
@@ -219,7 +222,7 @@ def get_top_k(predictions, k, number_subimages_dic):
                     del (predictions[idx][1:])
                 else:
                     del (predictions[idx][k:])
-                predictions_to_return.append(predictions[idx])
+                predictions_to_return.append([predictions[idx]])
                 predictions_idx += 1
             elif number_subimages == 2:
                 aux_list = []
@@ -260,6 +263,27 @@ def get_top_k(predictions, k, number_subimages_dic):
 
     return predictions_to_return
 
+def get_custom_mapk(GT, predictions, k):
+    """
+
+    :param GT:
+    :param predictions:
+    :return:
+    """
+
+    score = 0
+    idx = 0
+    total_paintings = 0
+    for prediction in predictions:
+        sub_idx = 0
+        for sub_prediction in prediction:
+            if GT[idx][sub_idx] in predictions[idx][sub_idx]:
+                score += 1
+            total_paintings += 1
+            sub_idx += 1
+        idx += 1
+
+    return score/total_paintings
 
 def get_mapk(GT, predictions, k):
     """
