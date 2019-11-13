@@ -5,21 +5,21 @@ Options:
 """
 
 # VSCode imports
-from evaluation import *
-from mask import *
-from texture_descriptors import *
-from text_ocr import *
-from compute_text_distances import *
-from local_descriptors import *
-from matching_distances import *
-from painting_finder import *
+# from evaluation import *
+# from mask import *
+# from texture_descriptors import *
+# from text_ocr import *
+# from compute_text_distances import *
+# from local_descriptors import *
+# from matching_distances import *
+# from painting_finder import *
 
 # PyCharm Imports
-# from week5.evaluation import *
-# from week5.texture_descriptors import *
-# from week5.text_ocr import *
-# from week5.local_descriptors import extract_local_descriptors
-# from week5.painting_finder import *
+from week5.evaluation import *
+from week5.texture_descriptors import *
+from week5.text_ocr import *
+from week5.local_descriptors import extract_local_descriptors
+from week5.painting_finder import *
 
 import sys
 import glob

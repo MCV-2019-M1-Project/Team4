@@ -221,7 +221,12 @@ def mask_creation_v2(image_path, path, idx):
     canny_image = cv2.Canny(image, canny_tresh1, canny_tresh2)
     canny_image = cv2.dilate(canny_image, None, iterations=7)
 
-    _, contours, _ = cv2.findContours(canny_image, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
+    (major, minor, _) = cv2.__version__.split(".")
+    if major == '4':
+        contours, _ = cv2.findContours(canny_image, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
+    else:
+        _, contours, _ = cv2.findContours(canny_image, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
+
     contours_info = []
     
     for contour in contours:
