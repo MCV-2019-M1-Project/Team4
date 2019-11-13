@@ -5,10 +5,10 @@ import glob
 from scipy import ndimage
 
 # VSCode imports
-#from mask import *
+from mask import *
 
 # PyCharm Imports
-from week5.mask import *
+# from week5.mask import *
 
 
 def find_paintings(image_path, masks_path, image_idx, query_set_path):
@@ -53,7 +53,7 @@ def find_paintings(image_path, masks_path, image_idx, query_set_path):
 
             #cv2.drawContours(image, [box], 0, (0, 0, 255), 2)
             #cv2.imshow("result", image)
-            cv2.waitKey(0)
+            # cv2.waitKey(0)
 
             # get width and height of the detected rectangle
             width = int(rect[1][0])

@@ -17,7 +17,7 @@ def bounding_boxes_detection(image_path, mask_set_path, method, save_masks, subp
     :param mask_set_path: path where the masks will be saved
     :param method: 1 for color segmentation, 2 for morphology operations, 3 for neural network
     :param save_masks: bool indicating if the masks need to be saved
-    :param subpaintings: compute if there are one or two subpaintings in the image: False for 1, True for 2
+    :param subpaintings: compute if there are more than one subpaintings in the image: 1, 2 or 3
     :param idx: int containing the index of the image
     :return: list of bounding boxes from first image to last image. Each image contains a maximum of 2 bounding boxes.
 
@@ -227,7 +227,7 @@ def bounding_boxes_detection(image_path, mask_set_path, method, save_masks, subp
     contours, _ = cv2.findContours(text_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2:]
 
     # Initialize parameters
-    largest_area, second_largest_area, x_box_1, y_box_1, w_box_1, h_box_1, x_box_2, y_box_2, w_box_2, h_box_2 = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    largest_area, second_largest_area, third_largest_area, x_box_1, y_box_1, w_box_1, h_box_1, x_box_2, y_box_2, w_box_2, h_box_2, x_box_3, y_box_3, w_box_3, h_box_3 = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     image_width = text_mask.shape[0]
     image_area = text_mask.shape[0] * text_mask.shape[1]
 
@@ -238,15 +238,23 @@ def bounding_boxes_detection(image_path, mask_set_path, method, save_masks, subp
 
         if (w / h > 2.5) & (w / h < 15) & (w > (0.1 * image_width)) & (area > second_largest_area) & (area < 0.1 * image_area):
 
-            if area > largest_area:
-                x_box_2, y_box_2, w_box_2, h_box_2 = x_box_1, y_box_1, w_box_1, h_box_1
-                x_box_1, y_box_1, w_box_1, h_box_1 = x, y, w, h
-                second_largest_area = largest_area
-                largest_area = area
-
-            else:
-                x_box_2, y_box_2, w_box_2, h_box_2 = x, y, w, h
-                second_largest_area = area
+            if area > third_largest_area:
+                if area > second_largest_area:
+                    if area > largest_area:
+                        x_box_3, y_box_3, w_box_3, h_box_3 = x_box_2, y_box_2, w_box_2, h_box_2
+                        x_box_2, y_box_2, w_box_2, h_box_2 = x_box_1, y_box_1, w_box_1, h_box_1   
+                        x_box_1, y_box_1, w_box_1, h_box_1 = x, y, w, h
+                        third_largest_area = second_largest_area
+                        second_largest_area = largest_area
+                        largest_area = area
+                    else:
+                        x_box_3, y_box_3, w_box_3, h_box_3 = x_box_2, y_box_2, w_box_2, h_box_2
+                        x_box_2, y_box_2, w_box_2, h_box_2 = x, y, w, h
+                        third_largest_area = second_largest_area
+                        second_largest_area = area
+                else:
+                    x_box_3, y_box_3, w_box_3, h_box_3 = x, y, w, h
+                    third_largest_area = area
 
     # cv2.rectangle(image, (x_box_1, y_box_1), (x_box_1 + w_box_1 - 1, y_box_1 + h_box_1 - 1), 255, 2)
     # cv2.rectangle(image, (x_box_2, y_box_2), (x_box_2 + w_box_2 - 1, y_box_2 + h_box_2 - 1), 255, 2)
@@ -254,12 +262,12 @@ def bounding_boxes_detection(image_path, mask_set_path, method, save_masks, subp
     # Append the corners of the bounding boxes to the boxes list
     text_mask[:,:] = 0
 
-    if subpaintings == False:
+    if subpaintings == 1:
         box = [[x_box_1, y_box_1, x_box_1 + w_box_1, y_box_1 + h_box_1]]
         boxes.append(box)
         text_mask[y_box_1 : (y_box_1 + h_box_1), x_box_1 : (x_box_1 + w_box_1)] = 255
 
-    if subpaintings == True:
+    if subpaintings == 2:
         if x_box_1 < x_box_2:
             box = [[x_box_1, y_box_1, x_box_1 + w_box_1, y_box_1 + h_box_1], [x_box_2, y_box_2, x_box_2 + w_box_2, y_box_2 + h_box_2]]
             boxes.append(box)
@@ -268,6 +276,30 @@ def bounding_boxes_detection(image_path, mask_set_path, method, save_masks, subp
             boxes.append(box)
         text_mask[y_box_1 : (y_box_1 + h_box_1), x_box_1 : (x_box_1 + w_box_1)] = 255
         text_mask[y_box_2 : (y_box_2 + h_box_2), x_box_2 : (x_box_2 + w_box_2)] = 255
+
+    if subpaintings == 3:
+        if x_box_1 < x_box_2 < x_box_3:
+            box = [[x_box_1, y_box_1, x_box_1 + w_box_1, y_box_1 + h_box_1], [x_box_2, y_box_2, x_box_2 + w_box_2, y_box_2 + h_box_2], [x_box_3, y_box_3, x_box_3 + w_box_3, y_box_3 + h_box_3] ]
+            boxes.append(box)
+        elif x_box_1 < x_box_3 < x_box_2:
+            box = [[x_box_1, y_box_1, x_box_1 + w_box_1, y_box_1 + h_box_1], [x_box_3, y_box_3, x_box_3 + w_box_3, y_box_3 + h_box_3], [x_box_2, y_box_2, x_box_2 + w_box_2, y_box_2 + h_box_2]]
+            boxes.append(box)
+        elif x_box_2 < x_box_1 < x_box_3:
+            box = [[x_box_2, y_box_2, x_box_2 + w_box_2, y_box_2 + h_box_2], [x_box_1, y_box_1, x_box_1 + w_box_1, y_box_1 + h_box_1], [x_box_3, y_box_3, x_box_3 + w_box_3, y_box_3 + h_box_3]]
+            boxes.append(box)
+        elif x_box_2 < x_box_3 < x_box_1:
+            box = [[x_box_2, y_box_2, x_box_2 + w_box_2, y_box_2 + h_box_2], [x_box_3, y_box_3, x_box_3 + w_box_3, y_box_3 + h_box_3], [x_box_1, y_box_1, x_box_1 + w_box_1, y_box_1 + h_box_1]]
+            boxes.append(box)
+        elif x_box_3 < x_box_1 < x_box_2:
+            box = [[x_box_3, y_box_3, x_box_3 + w_box_3, y_box_3 + h_box_3], [x_box_1, y_box_1, x_box_1 + w_box_1, y_box_1 + h_box_1], [x_box_2, y_box_2, x_box_2 + w_box_2, y_box_2 + h_box_2]]
+            boxes.append(box)            
+        elif x_box_3 < x_box_2 < x_box_1:
+            box = [[x_box_3, y_box_3, x_box_3 + w_box_3, y_box_3 + h_box_3], [x_box_2, y_box_2, x_box_2 + w_box_2, y_box_2 + h_box_2], [x_box_1, y_box_1, x_box_1 + w_box_1, y_box_1 + h_box_1]]
+            boxes.append(box)
+
+        text_mask[y_box_1 : (y_box_1 + h_box_1), x_box_1 : (x_box_1 + w_box_1)] = 255
+        text_mask[y_box_2 : (y_box_2 + h_box_2), x_box_2 : (x_box_2 + w_box_2)] = 255
+        text_mask[y_box_3 : (y_box_3 + h_box_2), x_box_3 : (x_box_3 + w_box_3)] = 255
 
     if save_masks:
         cv2.imwrite(mask_set_path + str(idx) + '.png', text_mask)

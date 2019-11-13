@@ -5,21 +5,21 @@ Options:
 """
 
 # VSCode imports
-# from evaluation import *
-# from mask import *
-# from texture_descriptors import *
-# from text_ocr import *
-# from compute_text_distances import *
-# from local_descriptors import *
-# from matching_distances import *
-# from painting_finder import *
+from evaluation import *
+from mask import *
+from texture_descriptors import *
+from text_ocr import *
+from compute_text_distances import *
+from local_descriptors import *
+from matching_distances import *
+from painting_finder import *
 
 # PyCharm Imports
-from week5.evaluation import *
-from week5.texture_descriptors import *
-from week5.text_ocr import *
-from week5.local_descriptors import extract_local_descriptors
-from week5.painting_finder import *
+# from week5.evaluation import *
+# from week5.texture_descriptors import *
+# from week5.text_ocr import *
+# from week5.local_descriptors import extract_local_descriptors
+# from week5.painting_finder import *
 
 import sys
 import glob
@@ -56,22 +56,22 @@ if __name__ == '__main__':
     use_denoised_images = True
 
     # Texture parameters
-    texture_descriptors = False
+    texture_descriptors = True
     texture_descriptor_level = 3
     texture_method = "LBP"
 
     # Histogram parameters
-    histogram_descriptors = False
+    histogram_descriptors = True
     color_base = "LAB"
     dimension = '2D'
     metric = "bhattacharya_distance"
     level = 3
 
     # Text parameters
-    text_descriptors = False
+    text_descriptors = True
 
     # Local descriptors parameters
-    local_descriptors = True
+    local_descriptors = False
     local_method = "sift" # sift, surf, root_sift, orb, fast-daisy, brisk
     matching_method = "flann" # brute_force, flann, nmslib
     local_metric = "l2" # l1, l2, hamming, hamming2
@@ -191,6 +191,7 @@ if __name__ == '__main__':
     paintings_data = []
     number_query_elements = len(query_filenames)
     result_text = []
+    evaluate_text = []
 
     # Check the data structures needed to store the features
     if histogram_descriptors:
@@ -225,9 +226,19 @@ if __name__ == '__main__':
             masks[idx], cropped_paintings, query_painting_data, number_subpaintings = find_paintings(query_image, masks_path, idx, query_set_path)
             paintings_data.append(query_painting_data)
             number_subimages[idx] = number_subpaintings
-
+            evaluate_text.extend(detect_bounding_boxes(query_image, mask_text_path, text_method, False, number_subimages[idx],
+                                                 idx))
             idx += 1
     
+    # Evaluation of the text Removal
+    if ground_truth_text_available:
+        # print("Ground truth bounding boxes text")
+        # print(GT_text)
+        # print("Text bounding boxes")
+        # print(evaluate_text)
+        IoU_text = evaluate_bbox(GT_text, evaluate_text)
+        print("Intersection over Union for text: ", str(IoU_text)) 
+           
     if text_removal and multiple_subimages:
         query_cropped_filenames = glob.glob(query_set_path + '_cropped_images/' + '*.jpg')
         query_cropped_filenames.sort()   
@@ -236,7 +247,7 @@ if __name__ == '__main__':
     for query_cropped_image in query_cropped_filenames:  
         print("Getting features for Query Image " + str(query_features_idx)) 
 
-        result_text.extend(detect_bounding_boxes(query_cropped_image, mask_text_path, text_method, True, False,
+        result_text.extend(detect_bounding_boxes(query_cropped_image, mask_text_path, text_method, True, 1,
                                                  query_features_idx))
         text_mask = cv2.cvtColor(cv2.imread(query_cropped_image),cv2.COLOR_BGR2GRAY)
         text_mask[:, :] = 255
@@ -266,12 +277,6 @@ if __name__ == '__main__':
     if save_to_pickle_text:
         print("Saving Results to Pickle File")
         save_to_pickle_file(result_text, 'results/QST1/method2/text_boxes.pkl')
-
-    # Evaluation of the text Removal
-    if ground_truth_text_available:
-        print(GT_text)
-        IoU_text = evaluate_bbox(GT_text, result_text)
-        print("Intersection over Union for text: ", str(IoU_text))
 
     # Evaluation of the Angles of the paintings
     if ground_truth_angle_available:
@@ -331,7 +336,7 @@ if __name__ == '__main__':
         save_to_pickle_file(top_k, 'results/QST1/method2/result.pkl')
 
     if ground_truth_available:
-        map_k = get_mapk(GT, top_k, k)
+        map_k = get_custom_mapk(GT, top_k, k)
         print('Map@K result: ' + str(map_k))
 
     if background_removal == "True":

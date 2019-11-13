@@ -332,7 +332,7 @@ def detect_bounding_boxes(path, mask_set_path, method, save_masks, subpaintings,
     :param mask_set_path: path where the masks need to be saved
     :param method: 1 for color segmentation, 2 for morphology operations, 3 for neural network
     :param save_masks: boolean indicating if the masks need to be saved
-    :param subpaintings: compute if there are one or two subpaintings in the image: False for 1, True for 2
+    :param subpaintings: compute if there are more than one subpaintings in the image: 1, 2 or 3
     :param idx: int indicating the index of the image
     :return: list of bounding boxes from first image to last image. Each image contains a maximum of 2 bounding boxes.
     
