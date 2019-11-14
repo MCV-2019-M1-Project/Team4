@@ -154,11 +154,11 @@ def calculate_similarities(color_base, metric, dimension, query_hists, query_tex
         aux_list = []
         print(query_element_distances_list[0][1])
         # Local + Texture + Color + Text descriptors threshold
-        if query_element_distances_list[0][1] > 4.5 and query_local_descriptors is not None and query_ocrs is not None \
+        if query_element_distances_list[0][1] > 5 and query_local_descriptors is not None and query_ocrs is not None \
                 and query_textures is not None and query_hists is not None:
             query_element_distances_list[0][0] = -1
         # Local + Texture + Color descriptors threshold
-        elif query_element_distances_list[0][1] > 2 and query_local_descriptors is not None and query_ocrs is None \
+        elif query_element_distances_list[0][1] > 1.5 and query_local_descriptors is not None and query_ocrs is None \
                 and query_textures is not None and query_hists is not None:
             query_element_distances_list[0][0] = -1
         # Only Local descriptors threshold
@@ -166,8 +166,12 @@ def calculate_similarities(color_base, metric, dimension, query_hists, query_tex
                 and query_textures is None and query_hists is None:
             query_element_distances_list[0][0] = -1
         # Texture + Color + Text descriptors threshold
-        elif query_element_distances_list[0][1] > 4.5 and query_local_descriptors is None and query_ocrs is not None \
+        elif query_element_distances_list[0][1] > 5 and query_local_descriptors is None and query_ocrs is not None \
                 and query_textures is not None and query_hists is not None:
+            query_element_distances_list[0][0] = -1
+        # Local + Text descriptors threshold
+        elif query_element_distances_list[0][1] > 2 and query_local_descriptors is not None and query_ocrs is not None \
+                and query_textures is None and query_hists is None:
             query_element_distances_list[0][0] = -1
         for pair in query_element_distances_list:
             del (pair[1])

@@ -26,9 +26,12 @@ import glob
 import numpy as np
 import cv2
 import os
+import time
 
 
 if __name__ == '__main__':
+    
+    start_time = time.time()
 
     # read args
     print("Reading Arguments")
@@ -376,3 +379,6 @@ if __name__ == '__main__':
         print('Precision: ' + str(np.array(mean_precision).mean()))
         print('Recall: ' + str(np.array(mean_recall).mean()))
         print('F1 score: ' + str(np.array(mean_f1score).mean()))
+    
+    end_time = time.time()
+    print("Elapsed time ", end_time - start_time)
