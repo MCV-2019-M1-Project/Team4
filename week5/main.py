@@ -46,9 +46,9 @@ if __name__ == '__main__':
     mask_text_path = 'text/text_masks/'
 
     # GT and results parameters
-    save_to_pickle = False
+    save_to_pickle = True
     save_to_pickle_text = False
-    save_to_pickle_painting_bbox_angle = False
+    save_to_pickle_painting_bbox_angle = True
     ground_truth_available = False
     ground_truth_text_available = False
     ground_truth_cropping_available = False
@@ -281,12 +281,12 @@ if __name__ == '__main__':
     # Check if the text results need to be saved in a pickle file
     if save_to_pickle_text:
         print("Saving Results to Pickle File")
-        save_to_pickle_file(result_text, 'results/QST1/method2/text_boxes.pkl')
+        save_to_pickle_file(result_text, 'results/QST1/method1/text_boxes.pkl')
 
     # Check if the bbox and angle need to be saved in a pickle file
     if save_to_pickle_painting_bbox_angle:
         print("Saving bbox and angles to Pickle File")
-        save_to_pickle(paintings_data, 'results/QST1/method2/text_boxes.pkl')
+        save_to_pickle_file(paintings_data, 'results/QST1/method1/frames.pkl')
 
     # Evaluation of the Angles of the paintings
     if ground_truth_angle_available:
@@ -363,7 +363,7 @@ if __name__ == '__main__':
 
     if save_to_pickle:
         print("Saving Results to Pickle File")
-        save_to_pickle_file(top_k, 'results/QST1/method2/result.pkl')
+        save_to_pickle_file(top_k, 'results/QST1/method1/result.pkl')
 
     if ground_truth_available:
         map_k = get_custom_mapk(GT, top_k, k)
