@@ -48,11 +48,12 @@ if __name__ == '__main__':
     # GT and results parameters
     save_to_pickle = False
     save_to_pickle_text = False
-    ground_truth_available = True
-    ground_truth_text_available = True
-    ground_truth_cropping_available = True
-    ground_truth_angle_available = True
-    ground_truth_ocr_available = True
+    save_to_pickle_painting_bbox_angle = False
+    ground_truth_available = False
+    ground_truth_text_available = False
+    ground_truth_cropping_available = False
+    ground_truth_angle_available = False
+    ground_truth_ocr_available = False
 
     # Denoise parameters
     execute_denoise_process = False
@@ -163,7 +164,7 @@ if __name__ == '__main__':
     if execute_denoise_process:
         query_noise_filenames = glob.glob(query_set_path + '/' + '*.jpg')
         query_noise_filenames.sort()
-        idx = 23
+        idx = 0
         PSNR = []  # Peak signal to Noise Ratio
         for query_noise_image in query_noise_filenames:
             if ground_truth_available:
@@ -219,6 +220,7 @@ if __name__ == '__main__':
         number_subimages = {}
         query_features_idx = 0
 
+    print(query_filenames)
     # Iterate over the query images to extract the features
     for query_image in query_filenames:
         print("Finding subpaintings in Query Image " + str(idx))
@@ -280,6 +282,11 @@ if __name__ == '__main__':
     if save_to_pickle_text:
         print("Saving Results to Pickle File")
         save_to_pickle_file(result_text, 'results/QST1/method2/text_boxes.pkl')
+
+    # Check if the bbox and angle need to be saved in a pickle file
+    if save_to_pickle_painting_bbox_angle:
+        print("Saving bbox and angles to Pickle File")
+        save_to_pickle(paintings_data, 'results/QST1/method2/text_boxes.pkl')
 
     # Evaluation of the Angles of the paintings
     if ground_truth_angle_available:
