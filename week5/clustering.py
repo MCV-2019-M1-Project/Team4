@@ -54,5 +54,3 @@ for i, k_l in enumerate(kmeans.labels_):
 
     
 print(kmeans.cluster_centers_)
-
-
