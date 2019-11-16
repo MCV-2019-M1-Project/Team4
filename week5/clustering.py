@@ -1,7 +1,5 @@
 import glob
 import cv2
-from week5.texture_descriptors import *
-from week5.histogram import *
 import sys
 import numpy as np
 from sklearn.cluster import KMeans
@@ -10,6 +8,15 @@ import os
 import shutil
 from tqdm import tqdm
 import time
+
+
+# VSCode Imports
+#from texture_descriptors import *
+#from evaluation import*
+
+# Pycharm imports
+from week5.texture_descriptors import *
+from week5.evaluation import *
 
 
 def lbp_texture_clustering(images):
@@ -55,7 +62,7 @@ def lbp_texture_clustering(images):
     # print(kmeans.labels_)
 
     for i, k_l in enumerate(kmeans.labels_):
-        dst_dir = '/home/josep/Code/M1/week5/Clustering/LBP/'+str(k_l)
+        dst_dir = 'Clustering/LBP/'+str(k_l)
         if not os.path.exists(dst_dir):
             os.makedirs(dst_dir)
         shutil.copy(filenames[i], dst_dir)
@@ -64,7 +71,11 @@ def lbp_texture_clustering(images):
 
 
 def hog_texture_clustering(images):
+    """
 
+    :param images:
+    :return:
+    """
     features = []
 
     for image in tqdm(images):
@@ -76,13 +87,52 @@ def hog_texture_clustering(images):
     kmeans = KMeans(n_clusters=10, random_state=None).fit(np.array(features))
 
     for i, k_l in enumerate(kmeans.labels_):
-        dst_dir = '/home/josep/Code/M1/week5/Clustering/HOG/' + str(k_l)
+        dst_dir = 'Clustering/HOG/' + str(k_l)
+        if not os.path.exists(dst_dir):
+            os.makedirs(dst_dir)
+        shutil.copy(filenames[i], dst_dir)
+
+
+def dct_texture_clustering(images):
+    """
+
+    :param images:
+    :return:
+    """
+
+    museum_histograms = []
+    museum_textures = []
+
+    color_base = "LAB"
+    dimension = '2D'
+    level = 3
+
+    texture_descriptor_level = 3
+    texture_method = "DCT"
+
+    for museum_image in tqdm(images):
+        museum_histograms.append(calculate_image_histogram(museum_image, None, color_base, dimension, level, None,
+                                                           None))
+        museum_textures.append(get_image_texture_descriptor(museum_image, texture_method, texture_descriptor_level,
+                                                            None, None, None))
+
+    feat_np = np.asarray(museum_textures, dtype=np.float64)
+    print("\n Performing KMeans")
+    kmeans = KMeans(n_clusters=10, random_state=10).fit(feat_np)
+
+    for i, k_l in enumerate(kmeans.labels_):
+        dst_dir = 'Clustering/DCT/' + str(k_l)
         if not os.path.exists(dst_dir):
             os.makedirs(dst_dir)
         shutil.copy(filenames[i], dst_dir)
 
 
 def colour_clustering(images):
+    """
+
+    :param images:
+    :return:
+    """
 
     features = []
 
@@ -95,13 +145,18 @@ def colour_clustering(images):
     kmeans = KMeans(n_clusters=10, random_state=None).fit(np.array(features))
 
     for i, k_l in enumerate(kmeans.labels_):
-        dst_dir = '/home/josep/Code/M1/week5/Clustering/Colour/'+str(k_l)
+        dst_dir = 'Clustering/Colour/'+str(k_l)
         if not os.path.exists(dst_dir):
             os.makedirs(dst_dir)
         shutil.copy(filenames[i], dst_dir)
 
 
 def combined_clustering(images):
+    """
+
+    :param images:
+    :return:
+    """
 
     features = []
 
@@ -118,7 +173,7 @@ def combined_clustering(images):
     kmeans = KMeans(n_clusters=10, random_state=None).fit(np.array(features))
 
     for i, k_l in enumerate(kmeans.labels_):
-        dst_dir = '/home/josep/Code/M1/week5/Clustering/Combined/' + str(k_l)
+        dst_dir = 'Clustering/Combined/' + str(k_l)
         if not os.path.exists(dst_dir):
             os.makedirs(dst_dir)
         shutil.copy(filenames[i], dst_dir)
@@ -128,25 +183,31 @@ if __name__ == "__main__":
     filenames = glob.glob("images/bbdd/*.jpg")
     filenames.sort()
 
-    print("Starting LBP clustering")
+    print("Starting LBP clustering\n")
     time_start = time.time()
     lbp_texture_clustering(filenames)
     time_end = time.time()
     print("Elapsed time: ", time_end - time_start)
 
-    print("Starting HOG clustering")
+    print("Starting HOG clustering\n")
     time_start = time.time()
     hog_texture_clustering(filenames)
     time_end = time.time()
     print("Elapsed time: ", time_end - time_start)
 
-    print("Starting Colour clustering")
+    print("Starting DCT clustering\n")
+    time_start = time.time()
+    dct_texture_clustering(filenames)
+    time_end = time.time()
+    print("Elapsed time: ", time_end - time_start)
+
+    print("Starting Colour clustering\n")
     time_start = time.time()
     colour_clustering(filenames)
     time_end = time.time()
     print("Elapsed time: ", time_end - time_start)
 
-    print("Starting Combined clustering")
+    print("Starting Combined clustering\n")
     time_start = time.time()
     combined_clustering(filenames)
     time_end = time.time()
